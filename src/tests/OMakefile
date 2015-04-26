@@ -1,0 +1,16 @@
+.SUBDIRS:
+
+OCAMLPACKS[] =
+    ounit
+
+OCAMLFLAGS += -I ../lib riff.cma
+
+FILES[] =
+    test_music
+
+CLEAN = rm -rf *.cm* *~ .\#* *.o *.lib *.omc *.install *.tmp test_music test_music.run oUnit-*
+
+clean:
+    $(CLEAN)
+
+.DEFAULT: $(OCamlProgram test_music, $(FILES))

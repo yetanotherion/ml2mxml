@@ -1,0 +1,20 @@
+.SUBDIRS:
+
+OCAMLPACKS += camlp4
+OCAMLFINDFLAGS += -syntax camlp4o
+
+OCAMLPACKS[] =
+    cow
+    cow.syntax
+
+FILES[] =
+    music_xml
+    music
+
+CLEAN = rm -rf *.cm* *~ .\#* *.o *.lib *.omc *.install *.tmp
+
+clean:
+    $(CLEAN)
+
+OCAML_LINK_FLAGS += -pack music_xml,music
+.DEFAULT: $(OCamlLibrary riff, $(FILES))

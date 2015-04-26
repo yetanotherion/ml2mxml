@@ -1,0 +1,16 @@
+.SUBDIRS:
+
+OCAMLFLAGS    += -I ../lib riff.cma
+
+FILES[] =
+    first
+
+OCAMLPACKS[] =
+    cow
+
+CLEAN = rm -rf *.cm* *~ .\#* *.o *.lib *.omc *.install *.tmp first first.run
+
+clean:
+    $(CLEAN)
+
+.DEFAULT: $(OCamlProgram first, $(FILES))
