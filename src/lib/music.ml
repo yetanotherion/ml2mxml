@@ -76,8 +76,11 @@ module Diatonic = struct
 
 end
 
+type clef = [`F | `G | `Drum]
+
 type string_instrument = {
-  strings: Diatonic.t array;
+    strings: Diatonic.t array;
+    clef: clef;
 }
 
 type note = [`Played of played_note | `Rest]
@@ -107,6 +110,7 @@ let generate_bass nb_string first_string_note =
 let std5_bass = {
   strings=Array.of_list (generate_bass 5 {Diatonic.note=`B;
                                           Diatonic.octave=0});
+  clef=`F;
 }
 
 let repeat n note = List.map (fun _ -> note) (range 0 n)

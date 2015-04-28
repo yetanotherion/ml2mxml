@@ -74,7 +74,20 @@ end
 
 module Sign = struct
   let to_string x =
-    match x with `Tab -> "TAB"
+    match x with
+    | `Tab -> "TAB"
+    | `F -> "F"
+    | `G -> "G"
+    | `Drum -> "percussion"
+
+  let to_line x =
+    (* http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#EL-MusicXML-clef.htm *)
+    match x with
+    | `Tab -> 5
+    | `F -> 4
+    | `G -> 2
+    | `Drum -> assert(false)
+
 end
 
 let create_key fifhts mode =
@@ -93,13 +106,20 @@ let create_time nb_beats beat_type =
   </time>
   >>
 
-let create_clef sign line =
+let create_clef sign number =
+  let attrlist = ["number", Printf.sprintf "%d" number] in
   <:xml<
-  <clef>
-  <sign>$str:Sign.to_string sign$</sign>
-  <line>$int:line$</line>
-  </clef>
+   <clef $alist:attrlist$>
+   <sign>$str:Sign.to_string sign$</sign>
+   <line>$int:Sign.to_line sign$</line>
+   </clef>
   >>
+
+let instrument_clef_to_clef x =
+  match x with
+  | `F -> `F
+  | `G -> `G
+  | `Drum -> `Drum
 
 module DiatonicScaleStepToTuningStep = struct
   let sharp_flat_to_int x =
@@ -255,135 +275,19 @@ let create_note instrument note =
    </note>
   >>
 
-(*
-let example =
-  <:xml<
-  <measure number="0">
-  <attributes>
-   <divisions>2</divisions>
-   $create_key 0 `Major$
-   $create_time 4 4$
-   $create_clef `Tab 5$
-   $create_transpose 0 0 0$
-  </attributes>
-   $create_metronome 184$
-   $list:notes$
-  <note>
-   <pitch>
-    <step>A</step>
-    <octave>1</octave>
-    <alter>1</alter> (* sharp or flat *)
-   </pitch>
-   <duration>1</duration>
-   <voice>1</voice> (* right or left end in piano*)
-   <type>eighth</type>
-   <stem>up</stem> (* bar above or below the note (up/down/none/double) *)
-   <beam number="1">begin</beam> (* horizontal line between notes *)
-   <notations>
-    <technical>
-     <string>3</string>
-     <fret>0</fret>
-    </technical>
-   </notations>
-  </note>
-  <note>
-   <pitch>
-    <step>A</step>
-    <octave>1</octave>
-   </pitch>
-   <duration>1</duration>
-   <voice>1</voice>
-   <type>eighth</type>
-   <stem>up</stem>
-   <beam number="1">end</beam>
-   <notations>
-    <technical>
-     <string>3</string>
-     <fret>0</fret>
-    </technical>
-   </notations>
-  </note>
-  <note>
-   <rest/>
-   <duration>1</duration>
-   <voice>1</voice>
-   <type>eighth</type>
-  </note>
-  <note>
-   <rest/>
-   <duration>1</duration>
-   <voice>1</voice>
-   <type>eighth</type>
-  </note>
-  <note>
-   <rest/>
-   <duration>1</duration>
-   <voice>1</voice>
-   <type>eighth</type>
-  </note>
-  <note>
-   <pitch>
-    <step>A</step>
-    <octave>1</octave>
-   </pitch>
-   <duration>1</duration>
-   <voice>1</voice>
-   <type>eighth</type>
-   <stem>up</stem>
-   <notations>
-    <technical>
-     <string>3</string>
-     <fret>0</fret>
-    </technical>
-   </notations>
-  </note>
-  <note>
-   <pitch>
-    <step>E</step>
-    <octave>2</octave>
-   </pitch>
-   <duration>1</duration>
-   <voice>1</voice>
-   <type>eighth</type>
-   <stem>up</stem>
-   <beam number="1">begin</beam>
-   <notations>
-    <technical>
-     <string>3</string>
-     <fret>7</fret>
-    </technical>
-   </notations>
-  </note>
-  <note>
-   <pitch>
-    <step>A</step>
-    <octave>1</octave>
-   </pitch>
-   <duration>1</duration>
-   <voice>1</voice>
-   <type>eighth</type>
-   <stem>up</stem>
-   <beam number="1">end</beam>
-   <notations>
-    <technical>
-     <string>3</string>
-     <fret>0</fret>
-    </technical>
-   </notations>
-  </note>
-  </measure>
- >>
-*)
-
 let create_measure measure_number instrument notes =
   let notes = List.map (fun note -> create_note instrument note) notes in
+  (* XXX Guitar pro does not display five strings
+     when adding the F clef, we put these lines in commentary for now
+     let instrument_clef = instrument_clef_to_clef instrument.Music.clef in
+     $create_clef instrument_clef 1$*)
   <:xml<
   <measure number="0">
   <attributes>
    <divisions>2</divisions>
    $create_key 0 `Major$
    $create_time 4 4$
-   $create_clef `Tab 5$
+   $create_clef `Tab 1$
    $create_instrument_staff_lines instrument$
    $create_transpose 0 0 0$
   </attributes>
