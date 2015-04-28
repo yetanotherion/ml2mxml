@@ -22,3 +22,6 @@ setup.log
 
 # emacs generated files
 *~
+
+.DS_Store
+.omakedb*
