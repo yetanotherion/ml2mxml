@@ -190,7 +190,13 @@ let create_transpose diatonic chromatic octave_change =
     <chromatic>$int:chromatic$</chromatic>
     <octave-change>$int:octave_change$</octave-change>
   </transpose>
-  >>
+   >>
+
+let create_divisions number =
+  <:xml<
+    <divisions>$int:number$</divisions>
+   >>
+
 module BeatUnit = struct
   let to_string x =
     match x with
@@ -255,6 +261,15 @@ let duration_to_string dur =
   match dur with
     | `Eighth -> "eighth"
 
+(* we hardcode that value to 24
+   we create all the duration to
+   http://www.musicxml.com/tutorial/the-midi-compatible-part/attributes/ *)
+let number_of_divions_per_quarter_note = 24
+
+let duration_to_duration dur =
+  match dur with
+    | `Eighth -> 12
+
 let create_note instrument note =
   let open Music in
   let pitch_or_rest, notations = match note.note with
@@ -267,7 +282,7 @@ let create_note instrument note =
   <:xml<
    <note>
     $pitch_or_rest$
-    <duration>1</duration>
+    <duration>$int:duration_to_duration note.duration$</duration>
     <voice>1</voice> (* right or left end in piano*)
     <type>$str:duration_to_string note.duration$</type>
     <stem>up</stem> (* bar above or below the note (up/down/none/double) *)
@@ -277,24 +292,39 @@ let create_note instrument note =
 
 let create_measure measure_number instrument notes =
   let notes = List.map (fun note -> create_note instrument note) notes in
+  let is_first_measure = measure_number = 0 in
+  let attribute = create_clef `Tab 1 in
+  let other_attributes =
+    if is_first_measure then
+      [create_divisions number_of_divions_per_quarter_note;
+       create_time 4 4;
+       create_key 0 `Major;
+       create_instrument_staff_lines instrument;
+       create_transpose 0 0 0]
+    else []
+  in
+  let all_attr = attribute :: other_attributes in
+  let last_attributes = notes in
+  let after_attributes =
+    if is_first_measure then
+      [create_metronome 184]
+    else []
+  in
+  let before_end = after_attributes @ last_attributes in
   (* XXX Guitar pro does not display five strings
      when adding the F clef, we put these lines in commentary for now
      let instrument_clef = instrument_clef_to_clef instrument.Music.clef in
      $create_clef instrument_clef 1$*)
+  let measure_attr = ["number", Printf.sprintf "%d" measure_number] in
   <:xml<
-  <measure number="0">
-  <attributes>
-   <divisions>2</divisions>
-   $create_key 0 `Major$
-   $create_time 4 4$
-   $create_clef `Tab 1$
-   $create_instrument_staff_lines instrument$
-   $create_transpose 0 0 0$
-  </attributes>
-   $create_metronome 184$
-   $list:notes$
-  </measure>
- >>
+   <measure $alist:measure_attr$>
+     <attributes>
+      $list:all_attr$
+     </attributes>
+     $list:before_end$
+   </measure>
+  >>
+
 
 
 let create title date id instrument notes =
