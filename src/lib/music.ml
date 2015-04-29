@@ -113,4 +113,14 @@ let std5_bass = {
   clef=`F;
 }
 
+let std_guitar =
+  let first_four = generate_bass 4 {Diatonic.note=`E;
+                                    Diatonic.octave = 2} in
+  let last_two = generate_bass 2 {Diatonic.note=`B;
+                                  Diatonic.octave = 3} in
+  {
+    strings=Array.of_list (first_four @ last_two);
+    clef=`G;
+  }
+
 let repeat n note = List.map (fun _ -> note) (range 0 n)

@@ -37,13 +37,6 @@ type midi_instrument = {
   pan: int;
 }
 
-let bass_midi_instrument = {channel = 3;
-                            bank = 1;
-                            program = 34;
-                            volume = 80;
-                            pan = 0}
-
-
 let create_midi_instrument_body t =
   <:xml<
   <midi-channel>$int:t.channel$</midi-channel>
@@ -54,7 +47,7 @@ let create_midi_instrument_body t =
   >>
 
 let create_midi_instrument id name abbrev t =
-  let attr = ["id", id] in
+  let attr = ["id", Printf.sprintf "%d" id] in
   <:xml<
   <score-part $alist:attr$>
     <part-name>$str:name$</part-name>
@@ -283,9 +276,9 @@ let create_note instrument note =
    <note>
     $pitch_or_rest$
     <duration>$int:duration_to_duration note.duration$</duration>
-    <voice>1</voice> (* right or left end in piano*)
+    <voice>1</voice>
     <type>$str:duration_to_string note.duration$</type>
-    <stem>up</stem> (* bar above or below the note (up/down/none/double) *)
+    <stem>up</stem>
     $list:notations$
    </note>
   >>
@@ -326,22 +319,64 @@ let create_measure measure_number instrument notes =
   >>
 
 
+type instrument = {
+    instrument_id: int;
+    midi_instrument: Xml.t;
+    music_instrument: Music.string_instrument;
+    measures: Music.measure_elt list list;
+}
 
-let create title date id instrument notes =
-  let bass = create_midi_instrument id "Electric Bass" "E-Bass5" bass_midi_instrument in
+let create_instrument id midi_instrument music_instrument measures =
+  {instrument_id = id;
+   midi_instrument = midi_instrument id;
+   music_instrument = music_instrument;
+   measures = measures }
+
+module MidiInstruments = struct
+    let bass_midi_instrument = {channel = 3;
+                                bank = 1;
+                                program = 34;
+                                volume = 80;
+                                pan = 0}
+
+    let std5_bass id =
+      create_midi_instrument id "Electric Bass" "E-Bass5" bass_midi_instrument
+    let guitar_midi_instrument = {channel = 1;
+                                  bank = 1;
+                                  program = 30;
+                                  volume = 40;
+                                  pan = 0}
+    let std_guitar id =
+      create_midi_instrument id "Guitar" "E-Guitar" guitar_midi_instrument
+  end
+
+let create title date instruments =
   let attr = ["version", "2.0"] in
   let title = create_title title in
   let date = create_date date in
+  let partLists = List.map (fun x -> x.midi_instrument) instruments in
+  let parts x = List.map (fun (i, measure_notes) ->
+                          create_measure i x.music_instrument measure_notes)
+                         (Music.enumerate x.measures) in
+
+  let make_part x =
+    let attr = ["id", Printf.sprintf "%d" x.instrument_id] in
+    let inside_part = parts x in
+    <:xml<
+    <part $alist:attr$>
+      $list:inside_part$
+    </part>
+  >>
+  in
+  let all_parts = List.map make_part instruments in
   let xml = <:xml<
     <score-partwise $alist:attr$>
       $title$
       $date$
       <part-list>
-       $bass$
+       $list:partLists$
       </part-list>
-      <part $alist:["id", id]$>
-        $create_measure 0 instrument notes$
-      </part>
+      $list:all_parts$
     </score-partwise>
     >> in
   xml
