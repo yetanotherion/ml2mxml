@@ -263,6 +263,20 @@ let duration_to_duration dur =
   match dur with
     | `Eighth -> 12
 
+let time_modification meter =
+  match meter with
+  | `Duple -> []
+  | `Triple ->
+     let elt =
+       <:xml<
+        <time-modification>
+        <actual-notes>3</actual-notes>
+        <normal-notes>2</normal-notes>
+        </time-modification>
+        >>
+     in [elt]
+
+
 let create_note ?(chord=false) instrument note =
   let open Music in
   let pitch_or_rest, notations = match note.note with
@@ -280,6 +294,7 @@ let create_note ?(chord=false) instrument note =
     if chord then [chord_elt]
     else []
   in
+  let meter = time_modification note.meter in
   <:xml<
    <note>
     $pitch_or_rest$
@@ -287,6 +302,7 @@ let create_note ?(chord=false) instrument note =
     <duration>$int:duration_to_duration note.duration$</duration>
     <voice>1</voice>
     <type>$str:duration_to_string note.duration$</type>
+    $list:meter$
     <stem>up</stem>
     $list:notations$
    </note>

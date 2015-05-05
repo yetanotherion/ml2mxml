@@ -84,20 +84,25 @@ type string_instrument = {
 }
 
 type note = [`Played of played_note | `Rest]
+type meter = [`Duple | `Triple ]
 
 type measure_elt = {
   note: note;
   duration: note_duration;
+  meter: meter;
 }
 
-let create_note dur s v = {note=`Played {string=s;
-                                         fret=v};
-                           duration=dur}
+let create_note ?(meter=`Duple) dur s v = {note=`Played {string=s;
+                                                         fret=v};
+                                           duration=dur;
+                                           meter=meter}
 
-let create_rest dur = {note=`Rest;
-                       duration=dur}
+let create_rest ?(meter=`Duple) dur = {note=`Rest;
+                                       duration=dur;
+                                       meter=meter}
 
-let create_eighth = create_note `Eighth
+let create_eighth ?(meter=`Duple) = create_note ~meter:meter `Eighth
+
 
 let make_standard_bass_shift note =
   Diatonic.shift_n_semitone note 5
