@@ -2,15 +2,17 @@ open Music
 
 module Example = struct
   let first_bass_riff () =
-    let zero = create_eighth 2 0 in
-    let rest = create_rest `Eighth in
+    let zero = [create_eighth 2 0] in
+    let rest = [create_rest `Eighth] in
     (repeat 2 zero) @
      (repeat 3 rest) @
-      [zero; create_eighth 2 7; zero]
+      [zero; [create_eighth 2 7]; zero]
 
   let first_guitar_riff () =
-    let zero = create_eighth 1 7 in
-    let rest = create_rest `Eighth in
+    let zero = [create_eighth 1 7;
+                create_eighth 2 9;
+                create_eighth 3 9] in
+    let rest = [create_rest `Eighth] in
     (repeat 2 zero) @
      (repeat 3 rest) @
        (repeat 3 zero)

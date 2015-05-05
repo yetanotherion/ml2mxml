@@ -263,7 +263,7 @@ let duration_to_duration dur =
   match dur with
     | `Eighth -> 12
 
-let create_note instrument note =
+let create_note ?(chord=false) instrument note =
   let open Music in
   let pitch_or_rest, notations = match note.note with
     | `Played x -> create_pitch instrument x
@@ -272,9 +272,18 @@ let create_note instrument note =
                  >> in
                rest, []
   in
+  let chord_elt = <:xml<
+       <chord/>
+    >>
+  in
+  let chord =
+    if chord then [chord_elt]
+    else []
+  in
   <:xml<
    <note>
     $pitch_or_rest$
+    $list:chord$
     <duration>$int:duration_to_duration note.duration$</duration>
     <voice>1</voice>
     <type>$str:duration_to_string note.duration$</type>
@@ -284,7 +293,15 @@ let create_note instrument note =
   >>
 
 let create_measure measure_number instrument notes =
-  let notes = List.map (fun note -> create_note instrument note) notes in
+  let notes = List.map (fun note_or_chords ->
+                        let first = List.hd note_or_chords in
+                        let others = List.tl note_or_chords in
+                        let first_note = create_note instrument first in
+                        let other_notes = List.map (fun note -> create_note ~chord:true instrument note)
+                                                   others
+                        in
+                        first_note :: other_notes) notes in
+  let notes = List.fold_left (fun accum elt -> accum @ elt) [] notes in
   let is_first_measure = measure_number = 0 in
   let attribute = create_clef `Tab 1 in
   let other_attributes =
@@ -323,7 +340,7 @@ type instrument = {
     instrument_id: int;
     midi_instrument: Xml.t;
     music_instrument: Music.string_instrument;
-    measures: Music.measure_elt list list;
+    measures: Music.measure_elt list list list;
 }
 
 let create_instrument id midi_instrument music_instrument measures =
@@ -341,11 +358,13 @@ module MidiInstruments = struct
 
     let std5_bass id =
       create_midi_instrument id "Electric Bass" "E-Bass5" bass_midi_instrument
+
     let guitar_midi_instrument = {channel = 1;
                                   bank = 1;
                                   program = 30;
                                   volume = 40;
                                   pan = 0}
+
     let std_guitar id =
       create_midi_instrument id "Guitar" "E-Guitar" guitar_midi_instrument
   end
