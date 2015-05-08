@@ -1,5 +1,4 @@
 type note_duration = [`Eighth]
-type instrument = [`Bass5]
 
 let range ?step:(s=1) start_idx end_idx =
   (* range 0 3 == [0; 1; 2] *)
@@ -76,32 +75,63 @@ module Diatonic = struct
 
 end
 
-type clef = [`F | `G | `Drum]
+type string_clef = [`F | `G ]
 
 type string_instrument = {
     strings: Diatonic.t array;
-    clef: clef;
+    string_clef: string_clef;
 }
 
-type note = [`Played of played_note | `Rest]
+type drum_element = [
+  | `Kick
+  | `Snare
+  | `Cowbell
+  | `Tom
+  | `Tom_01
+  | `Tom_02
+  | `Tom_03
+  | `Tom_04
+  | `Hihat
+  | `PedalHiHat
+  | `Crash
+  | `Splash
+  | `Ride
+  | `China ]
+
+type string_note = [
+    | `Played of played_note
+    | `Rest ]
+
+type drum_note = [
+    | `Played of drum_element
+    | `Rest ]
+
 type meter = [`Duple | `Triple ]
 
-type measure_elt = {
-  note: note;
+type 'a measure_elt = {
+  note: 'a;
   duration: note_duration;
   meter: meter;
 }
 
-let create_note ?(meter=`Duple) dur s v = {note=`Played {string=s;
-                                                         fret=v};
-                                           duration=dur;
-                                           meter=meter}
 
-let create_rest ?(meter=`Duple) dur = {note=`Rest;
-                                       duration=dur;
-                                       meter=meter}
+let create_note ?(meter=`Duple) dur n =
+  {note=n;
+   duration=dur;
+   meter=meter}
 
-let create_eighth ?(meter=`Duple) = create_note ~meter:meter `Eighth
+
+let create_string_note ?(meter=`Duple) dur s v =
+  create_note ~meter dur (`Played ({string=s;
+                                    fret=v}))
+
+let create_drum_note ?(meter=`Duple) dur h =
+  create_note ~meter dur (`Played h)
+
+let create_rest ?(meter=`Duple) dur = create_note ~meter dur `Rest
+
+let create_string_eighth ?(meter=`Duple) = create_string_note ~meter `Eighth
+let create_drum_eighth ?(meter=`Duple) = create_drum_note ~meter `Eighth
 
 
 let make_standard_bass_shift note =
@@ -115,7 +145,7 @@ let generate_bass nb_string first_string_note =
 let std5_bass = {
   strings=Array.of_list (generate_bass 5 {Diatonic.note=`B;
                                           Diatonic.octave=0});
-  clef=`F;
+  string_clef=`F;
 }
 
 let std_guitar =
@@ -125,7 +155,10 @@ let std_guitar =
                                   Diatonic.octave = 3} in
   {
     strings=Array.of_list (first_four @ last_two);
-    clef=`G;
+    string_clef=`G;
   }
 
-let repeat n note = List.map (fun _ -> note) (range 0 n)
+let repeat_note n note = List.map (fun _ -> note) (range 0 n)
+
+let repeat_notes n notes = List.fold_left (fun accum i ->
+                                           accum @ notes) [] (range 0 n)

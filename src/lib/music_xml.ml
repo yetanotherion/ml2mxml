@@ -25,40 +25,6 @@ let create_date ?(name="find it") date =
   </identification>
   >>
 
-(* XXX cannot use "with xml" as:
-   - the node have - in their name
-   - ocaml does not allow - in the field of struct-s *)
-
-type midi_instrument = {
-  channel: int;
-  bank: int;
-  program: int;
-  volume: int;
-  pan: int;
-}
-
-let create_midi_instrument_body t =
-  <:xml<
-  <midi-channel>$int:t.channel$</midi-channel>
-  <midi-bank>$int:t.bank$</midi-bank>
-  <midi-program>$int:t.program$</midi-program>
-  <volume>$int:t.volume$</volume>
-  <pan>$int:t.pan$</pan>
-  >>
-
-let create_midi_instrument id name abbrev t =
-  let attr = ["id", Printf.sprintf "%d" id] in
-  <:xml<
-  <score-part $alist:attr$>
-    <part-name>$str:name$</part-name>
-    <part-abbreviation>$str:abbrev$</part-abbreviation>
-    <midi-instrument $alist:attr$>
-      $create_midi_instrument_body t$
-    </midi-instrument>
-  </score-part>
-  >>
-
-
 module Mode = struct
   let to_string x =
     match x with
@@ -107,6 +73,13 @@ let create_clef sign number =
    <line>$int:Sign.to_line sign$</line>
    </clef>
   >>
+
+let drum_clef =
+  <:xml<
+   <clef>
+   <sign>percussion</sign>
+   </clef>
+   >>
 
 let instrument_clef_to_clef x =
   match x with
@@ -276,64 +249,97 @@ let time_modification meter =
         >>
      in [elt]
 
+module Constants = struct
+    let rest = <:xml<
+                <rest/>
+                >>
+    let chord = <:xml<
+                 <chord/>
+                 >>
+  end
 
-let create_note ?(chord=false) instrument note =
+let create_chord_elt_if_necessary is_chord_necessary =
+  if is_chord_necessary then [Constants.chord]
+  else []
+
+let create_mxml_note chord pitch_or_rest instrument_lines notations note =
   let open Music in
-  let pitch_or_rest, notations = match note.note with
-    | `Played x -> create_pitch instrument x
-    | `Rest -> let rest = <:xml<
-                 <rest/>
-                 >> in
-               rest, []
-  in
-  let chord_elt = <:xml<
-       <chord/>
-    >>
-  in
-  let chord =
-    if chord then [chord_elt]
-    else []
-  in
   let meter = time_modification note.meter in
   <:xml<
    <note>
     $pitch_or_rest$
-    $list:chord$
+    $list:create_chord_elt_if_necessary chord$
     <duration>$int:duration_to_duration note.duration$</duration>
+    $list:instrument_lines$
     <voice>1</voice>
     <type>$str:duration_to_string note.duration$</type>
     $list:meter$
     <stem>up</stem>
     $list:notations$
    </note>
-  >>
+   >>
 
-let create_measure measure_number instrument notes =
+let create_drum_note ?(chord=false) id note =
+  let open Music in
+  let pitch_or_rest, notations, lines = match note.note with
+    | `Rest -> Constants.rest, [], []
+    | `Played x ->
+       let unpitched = Drum_music_xml.drum_element_to_unpitched x in
+       let notehead = <:xml<
+                       <notehead>normal</notehead>
+                       >> in
+       let empty_notation = <:xml<
+                             <notations>
+                             <technical/>
+                             </notations>
+                             >> in
+       let instrument_line = Drum_music_xml.drum_element_to_instrument_line
+                               id x in
+
+       unpitched, [notehead; empty_notation], [instrument_line]
+  in
+  create_mxml_note chord pitch_or_rest lines notations note
+
+let create_string_note ?(chord=false) instrument note =
+  let open Music in
+  let pitch_or_rest, notations = match note.note with
+    | `Rest -> Constants.rest, []
+    | `Played x -> create_pitch instrument x
+  in
+  create_mxml_note chord pitch_or_rest [] notations note
+
+let create_measure ?(tempo=None)
+                   measure_number
+                   notes
+                   create_first_note
+                   create_chord_note
+                   clef
+                   additional_first_attributes =
   let notes = List.map (fun note_or_chords ->
                         let first = List.hd note_or_chords in
                         let others = List.tl note_or_chords in
-                        let first_note = create_note instrument first in
-                        let other_notes = List.map (fun note -> create_note ~chord:true instrument note)
+                        let first_note = create_first_note first in
+                        let other_notes = List.map (fun note -> create_chord_note note)
                                                    others
                         in
                         first_note :: other_notes) notes in
   let notes = List.fold_left (fun accum elt -> accum @ elt) [] notes in
   let is_first_measure = measure_number = 0 in
-  let attribute = create_clef `Tab 1 in
+  let attribute = clef in
   let other_attributes =
     if is_first_measure then
       [create_divisions number_of_divions_per_quarter_note;
-       create_time 4 4;
-       create_key 0 `Major;
-       create_instrument_staff_lines instrument;
-       create_transpose 0 0 0]
+       create_time 4 4 ]
+      @ additional_first_attributes
     else []
   in
   let all_attr = attribute :: other_attributes in
   let last_attributes = notes in
   let after_attributes =
     if is_first_measure then
-      [create_metronome 184]
+      match tempo with
+      | None -> []
+      | Some x -> [create_metronome x]
     else []
   in
   let before_end = after_attributes @ last_attributes in
@@ -349,23 +355,77 @@ let create_measure measure_number instrument notes =
      </attributes>
      $list:before_end$
    </measure>
-  >>
+   >>
 
+let create_string_measure ?(tempo=None) measure_number instrument notes =
+  create_measure ~tempo measure_number notes
+                 (create_string_note instrument)
+                 (create_string_note ~chord:true instrument)
+                 (create_clef `Tab 1)
+                 [create_key 0 `Major;
+                  create_instrument_staff_lines instrument;
+                  create_transpose 0 0 0]
+
+let create_drum_measure ?(tempo=None) measure_number notes id =
+  create_measure ~tempo
+                 measure_number notes
+                 (create_drum_note id)
+                 (create_drum_note ~chord:true id)
+                 (drum_clef)
+                 []
+
+type 'a measures = ('a Music.measure_elt) list list list
+
+type music_instrument = [
+  | `String of (Music.string_instrument * Music.string_note measures)
+  | `Drum of Music.drum_note measures]
 
 type instrument = {
     instrument_id: int;
     midi_instrument: Xml.t;
-    music_instrument: Music.string_instrument;
-    measures: Music.measure_elt list list list;
+    instrument_and_measures: music_instrument;
 }
 
-let create_instrument id midi_instrument music_instrument measures =
+let create_instrument id midi_instrument instrument_and_measures =
   {instrument_id = id;
    midi_instrument = midi_instrument id;
-   music_instrument = music_instrument;
-   measures = measures }
+   instrument_and_measures = instrument_and_measures;
+  }
 
 module MidiInstruments = struct
+    (* XXX cannot use "with xml" as:
+       - the node have - in their name
+       - ocaml does not allow - in the field of struct-s *)
+
+    type midi_instrument = {
+      channel: int;
+      bank: int;
+      program: int;
+      volume: int;
+      pan: int;
+    }
+
+    let create_midi_instrument_body t =
+      <:xml<
+      <midi-channel>$int:t.channel$</midi-channel>
+      <midi-bank>$int:t.bank$</midi-bank>
+      <midi-program>$int:t.program$</midi-program>
+      <volume>$int:t.volume$</volume>
+      <pan>$int:t.pan$</pan>
+      >>
+
+    let create_midi_instrument id name abbrev t =
+      let attr = ["id", Printf.sprintf "%d" id] in
+      <:xml<
+      <score-part $alist:attr$>
+        <part-name>$str:name$</part-name>
+        <part-abbreviation>$str:abbrev$</part-abbreviation>
+        <midi-instrument $alist:attr$>
+          $create_midi_instrument_body t$
+        </midi-instrument>
+      </score-part>
+      >>
+
     let bass_midi_instrument = {channel = 3;
                                 bank = 1;
                                 program = 34;
@@ -383,16 +443,29 @@ module MidiInstruments = struct
 
     let std_guitar id =
       create_midi_instrument id "Guitar" "E-Guitar" guitar_midi_instrument
+
+    let std_drum = Drum_music_xml.create_midi_instrument
+
   end
 
-let create title date instruments =
+let create title date tempo instruments =
   let attr = ["version", "2.0"] in
   let title = create_title title in
   let date = create_date date in
-  let partLists = List.map (fun x -> x.midi_instrument) instruments in
-  let parts x = List.map (fun (i, measure_notes) ->
-                          create_measure i x.music_instrument measure_notes)
-                         (Music.enumerate x.measures) in
+  let part_lists = List.map (fun x -> x.midi_instrument) instruments in
+  let parts x =
+    match x.instrument_and_measures with
+    | `String (instrument, measures) -> List.map (fun (i, measure_notes) ->
+                                                  let tempo =
+                                                    if i == 0 then Some tempo
+                                                    else None
+                                                  in
+                                                  create_string_measure ~tempo i instrument measure_notes)
+                                                 (Music.enumerate measures)
+    | `Drum measures -> List.map (fun (i, measure_notes) ->
+                                  create_drum_measure i measure_notes x.instrument_id)
+                                 (Music.enumerate measures)
+  in
 
   let make_part x =
     let attr = ["id", Printf.sprintf "%d" x.instrument_id] in
@@ -409,7 +482,7 @@ let create title date instruments =
       $title$
       $date$
       <part-list>
-       $list:partLists$
+       $list:part_lists$
       </part-list>
       $list:all_parts$
     </score-partwise>

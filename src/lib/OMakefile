@@ -9,6 +9,7 @@ OCAMLPACKS[] =
 
 FILES[] =
     music_xml
+    drum_music_xml
     music
 
 CLEAN = rm -rf *.cm* *~ .\#* *.o *.lib *.omc *.install *.tmp
