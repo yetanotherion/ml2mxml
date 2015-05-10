@@ -1,4 +1,4 @@
-type note_duration = [`Eighth]
+type note_duration = [`Eighth | `Whole ]
 
 let range ?step:(s=1) start_idx end_idx =
   (* range 0 3 == [0; 1; 2] *)
@@ -121,10 +121,16 @@ type 'a measures = 'a measure list
 
 let duration_to_float n =
   match n.duration with
-  | `Eighth ->
+  | `Eighth -> begin
      match n.meter with
      | `Duple -> 1.0 /. 8.0
      | `Triple -> 1.0 /. 12.0
+    end
+  | `Whole -> begin
+      match n.meter with
+      | `Duple -> 1.0
+      | `Triple -> 1.0 (* XXX to check *)
+    end
 
 let create_single_note ?(meter=`Duple) dur n =
   {
@@ -152,6 +158,7 @@ let repeat_note n note =
       List.fold_left (fun accum _ ->
                       note :: accum) [] (range 0 n))
 
+
 let create_measure notes =
   let sum = List.fold_left
               (fun accum note ->
@@ -159,6 +166,8 @@ let create_measure notes =
   if sum <> 1.0 then failwith (Printf.sprintf "not correct number of notes, missing %f units" sum)
   else ()
 
+let repeat_measures n m =
+  List.map (fun _ -> m) (range 0 n)
 
 let create_string_note ?(meter=`Duple) dur s v =
   create_single_note ~meter dur ({string=s;
