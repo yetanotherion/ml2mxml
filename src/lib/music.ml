@@ -99,12 +99,14 @@ type drum_element = [
   | `China ]
 
 type string_note = [
-    | `Played of played_note
-    | `Rest ]
+  | `Single of played_note
+  | `Chord of played_note list
+  | `Rest ]
 
 type drum_note = [
-    | `Played of drum_element
-    | `Rest ]
+  | `Single of drum_element
+  | `Chord of drum_element list
+  | `Rest ]
 
 type meter = [`Duple | `Triple ]
 
@@ -114,23 +116,66 @@ type 'a measure_elt = {
   meter: meter;
 }
 
+type 'a measure = 'a measure_elt list
+type 'a measures = 'a measure list
 
-let create_note ?(meter=`Duple) dur n =
-  {note=n;
+let duration_to_float n =
+  match n.duration with
+  | `Eighth ->
+     match n.meter with
+     | `Duple -> 1.0 /. 8.0
+     | `Triple -> 1.0 /. 12.0
+
+let create_single_note ?(meter=`Duple) dur n =
+  {
+    note=`Single n;
+    duration=dur;
+    meter=meter;
+  }
+
+let create_chord ?(meter=`Duple) dur played_notes =
+  {note=`Chord played_notes;
+   duration=dur;
+   meter=meter}
+
+let create_rest ?(meter=`Duple) dur =
+  {note=`Rest;
    duration=dur;
    meter=meter}
 
 
+
+let repeat_note_patterns n notes = List.fold_left (fun accum i ->
+                                                   accum @ notes) [] (range 0 n)
+let repeat_note n note =
+  List.rev (
+      List.fold_left (fun accum _ ->
+                      note :: accum) [] (range 0 n))
+
+let create_measure notes =
+  let sum = List.fold_left
+              (fun accum note ->
+               accum +. (duration_to_float note)) 0.0 notes in
+  if sum <> 1.0 then failwith (Printf.sprintf "not correct number of notes, missing %f units" sum)
+  else ()
+
+
 let create_string_note ?(meter=`Duple) dur s v =
-  create_note ~meter dur (`Played ({string=s;
-                                    fret=v}))
+  create_single_note ~meter dur ({string=s;
+                                  fret=v})
+let create_string_chord ?(meter=`Duple) dur l =
+  create_chord ~meter dur (List.map (fun x ->
+                                     let s, v = x in
+                                     {string=s;
+                                      fret=v}) l)
 
 let create_drum_note ?(meter=`Duple) dur h =
-  create_note ~meter dur (`Played h)
+  create_single_note ~meter dur h
 
-let create_rest ?(meter=`Duple) dur = create_note ~meter dur `Rest
+
 
 let create_string_eighth ?(meter=`Duple) = create_string_note ~meter `Eighth
+let create_string_chord_eighth ?(meter=`Duple) = create_string_chord ~meter `Eighth
 let create_drum_eighth ?(meter=`Duple) = create_drum_note ~meter `Eighth
 
 
@@ -157,8 +202,3 @@ let std_guitar =
     strings=Array.of_list (first_four @ last_two);
     string_clef=`G;
   }
-
-let repeat_note n note = List.map (fun _ -> note) (range 0 n)
-
-let repeat_notes n notes = List.fold_left (fun accum i ->
-                                           accum @ notes) [] (range 0 n)

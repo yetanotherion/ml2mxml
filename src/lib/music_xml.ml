@@ -262,7 +262,11 @@ let create_chord_elt_if_necessary is_chord_necessary =
   if is_chord_necessary then [Constants.chord]
   else []
 
-let create_mxml_note chord pitch_or_rest instrument_lines notations note =
+let create_mxml_note chord
+                     pitch_or_rest
+                     instrument_lines
+                     notations
+                     note =
   let open Music in
   let meter = time_modification note.meter in
   <:xml<
@@ -308,6 +312,14 @@ let create_string_note ?(chord=false) instrument note =
   in
   create_mxml_note chord pitch_or_rest [] notations note
 
+let transform_note note newnote =
+  let open Music in
+  {
+    note=newnote;
+    duration=note.duration;
+    meter=note.meter;
+  }
+
 let create_measure ?(tempo=None)
                    measure_number
                    notes
@@ -315,10 +327,17 @@ let create_measure ?(tempo=None)
                    create_chord_note
                    clef
                    additional_first_attributes =
-  let notes = List.map (fun note_or_chords ->
-                        let first = List.hd note_or_chords in
-                        let others = List.tl note_or_chords in
-                        let first_note = create_first_note first in
+  let notes = List.map (fun note ->
+                        match note.Music.note with
+                        | `Single x -> [create_first_note
+                                          (transform_note note (`Played x))]
+                        | `Rest -> [create_first_note
+                                      (transform_note note `Rest)]
+                        | `Chord l ->
+                           let newl = List.map (fun x -> transform_note note (`Played x)) l in
+                           let first = List.hd newl in
+                           let others = List.tl newl in
+                           let first_note = create_first_note first in
                         let other_notes = List.map (fun note -> create_chord_note note)
                                                    others
                         in
@@ -374,11 +393,9 @@ let create_drum_measure ?(tempo=None) measure_number notes id =
                  (drum_clef)
                  []
 
-type 'a measures = ('a Music.measure_elt) list list list
-
 type music_instrument = [
-  | `String of (Music.string_instrument * Music.string_note measures)
-  | `Drum of Music.drum_note measures]
+  | `String of (Music.string_instrument * Music.string_note Music.measures)
+  | `Drum of Music.drum_note Music.measures]
 
 type instrument = {
     instrument_id: int;

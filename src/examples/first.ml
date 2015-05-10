@@ -2,29 +2,29 @@ open Music
 
 module Example = struct
   let first_bass_riff () =
-    let zero = [create_string_eighth 2 0] in
-    let rest = [create_rest `Eighth] in
+    let zero = create_string_eighth 2 0 in
+    let rest = create_rest `Eighth in
     (repeat_note 2 zero) @
      (repeat_note 3 rest) @
-      [zero; [create_string_eighth 2 7]; zero]
+      [zero; create_string_eighth 2 7; zero]
 
   let first_guitar_riff () =
-    repeat_note (4 * 3) [create_string_eighth ~meter:`Triple 1 7]
+    repeat_note (4 * 3) (create_string_eighth ~meter:`Triple 1 7)
 
   let second_guitar_riff () =
-    let zero = [create_string_eighth 1 7;
-                create_string_eighth 2 9;
-                create_string_eighth 3 9] in
-    let rest = [create_rest `Eighth] in
+    let zero = create_string_chord_eighth [(1, 7);
+                                           (2, 9);
+                                           (3, 9)] in
+    let rest = create_rest `Eighth in
     (repeat_note 2 zero) @
      (repeat_note 3 rest) @
        (repeat_note 3 zero)
 
   let drum_riff () =
-    let kick = [create_drum_eighth `Kick] in
-    let snare = [create_drum_eighth `Snare] in
+    let kick = create_drum_eighth `Kick in
+    let snare = create_drum_eighth `Snare in
     let first_time = [kick; snare] in
-    repeat_notes 4 first_time
+    repeat_note_patterns 4 first_time
 
   let output_example () =
     let bass = Music_xml.create_instrument 0 Music_xml.MidiInstruments.std5_bass (`String (std5_bass, [first_bass_riff (); first_bass_riff ()])) in
