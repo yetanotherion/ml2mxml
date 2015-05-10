@@ -1,4 +1,4 @@
-type note_duration = [`Eighth | `Whole ]
+type note_duration = [`Sixteenth | `Eighth | `Quarter | `Whole ]
 
 let range ?step:(s=1) start_idx end_idx =
   (* range 0 3 == [0; 1; 2] *)
@@ -121,15 +121,25 @@ type 'a measures = 'a measure list
 
 let duration_to_float n =
   match n.duration with
+  | `Sixteenth -> begin
+      match n.meter with
+      | `Duple -> 1.0 /. 16.0
+      | `Triple -> 1.0 /. 24.0
+    end
   | `Eighth -> begin
      match n.meter with
      | `Duple -> 1.0 /. 8.0
      | `Triple -> 1.0 /. 12.0
     end
+  | `Quarter -> begin
+      match n.meter with
+      | `Duple -> 1.0 /. 4.0
+      | `Triple -> failwith ("not supported for now")
+    end
   | `Whole -> begin
       match n.meter with
       | `Duple -> 1.0
-      | `Triple -> 1.0 (* XXX to check *)
+      | `Triple -> failwith ("not supported for now")
     end
 
 let create_single_note ?(meter=`Duple) dur n =
@@ -164,7 +174,7 @@ let create_measure notes =
               (fun accum note ->
                accum +. (duration_to_float note)) 0.0 notes in
   if sum <> 1.0 then failwith (Printf.sprintf "not correct number of notes, missing %f units" sum)
-  else ()
+  else notes
 
 let repeat_measures n m =
   List.map (fun _ -> m) (range 0 n)
@@ -181,12 +191,15 @@ let create_string_chord ?(meter=`Duple) dur l =
 let create_drum_note ?(meter=`Duple) dur h =
   create_single_note ~meter dur h
 
-
+let create_drum_chord ?(meter=`Duple) dur l =
+  create_chord ~meter dur l
 
 let create_string_eighth ?(meter=`Duple) = create_string_note ~meter `Eighth
 let create_string_chord_eighth ?(meter=`Duple) = create_string_chord ~meter `Eighth
+let create_drum_sixteenth ?(meter=`Duple) = create_drum_note ~meter `Sixteenth
 let create_drum_eighth ?(meter=`Duple) = create_drum_note ~meter `Eighth
-
+let create_drum_quarter ?(meter=`Duple) = create_drum_note ~meter `Quarter
+let create_drum_chord_quarter ?(meter=`Duple) = create_drum_chord ~meter `Quarter
 
 let make_standard_bass_shift note =
   Diatonic.shift_n_semitone note 5

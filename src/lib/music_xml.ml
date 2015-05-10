@@ -225,7 +225,9 @@ let create_pitch instrument played_note =
 
 let duration_to_string dur =
   match dur with
+  | `Sixteenth -> "16th"
   | `Eighth -> "eighth"
+  | `Quarter -> "quarter"
   | `Whole -> "whole"
 
 (* we hardcode that value to 24
@@ -235,7 +237,9 @@ let number_of_divions_per_quarter_note = 24
 
 let duration_to_duration dur =
   match dur with
+  | `Sixteenth -> 6
   | `Eighth -> 12
+  | `Quarter -> 24
   | `Whole -> 96
 
 let time_modification meter =

@@ -41,14 +41,14 @@ module Measure = struct
                              fun () ->
                              let rest = Music.create_rest `Eighth in
                              let eight_rest = Music.repeat_note 8 rest in
-                             let () = Music.create_measure eight_rest in
+                             let _ = Music.create_measure eight_rest in
                              "no_error" @? true);
                             ("non_correct",
                              fun () ->
                              let rest = Music.create_rest `Eighth in
                              let seven_rest = Music.repeat_note 7 rest in
                              try
-                               let () = Music.create_measure seven_rest in
+                               let _ = Music.create_measure seven_rest in
                                "exception not raised" @? false
                              with Failure s ->
                                let expected_msg = "not correct number of notes, missing 0.875000 units" in
