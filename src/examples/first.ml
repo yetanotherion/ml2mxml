@@ -1,6 +1,39 @@
 open Music
 
 module Example = struct
+    type parts = {
+        bass: string_note measures;
+        guitar: string_note measures;
+        drum: drum_note measures;
+      }
+
+    let create_part b g d =
+      let lb, lg, ld = List.length b, List.length g, List.length d in
+      let () =
+        if not (lb = lg && lg = ld) then failwith("invalid length")
+      in
+      {
+        bass = b;
+        guitar = g;
+        drum = d;
+      }
+
+    let append_parts a b =
+      {
+        bass = a.bass @ b.bass;
+        guitar = a.guitar @ b.guitar;
+        drum = a.drum @ b.drum;
+      }
+
+    let flatten l =
+      match l with
+      | [] -> {bass = [];
+               guitar = [];
+               drum = []}
+      | hd :: tl ->
+         List.fold_left (fun accum x ->
+                         append_parts accum x) hd tl
+
     let sixteenth_rest = create_rest `Sixteenth
     let eighth_rest = create_rest `Eighth
     let quarter_rest = create_rest `Quarter
@@ -68,6 +101,7 @@ module Example = struct
                       eighth_rest;
                       kick_e; kick_e;
                       snare_q]
+
     let fourth_drum_measure =
       create_measure [quarter_rest; snare;
                       eighth_rest;
@@ -99,29 +133,116 @@ module Example = struct
 
     let guitar_bis_third_measure =
       create_measure
-        (eighth_rest:: (repeat_note 7 eight_chord))
+        (eighth_rest :: (repeat_note 7 eight_chord))
 
     let guitar_bis_fourth_measure =
       create_measure
-        (eighth_rest:: (repeat_note 7 ten_chord))
+        (eighth_rest :: (repeat_note 7 ten_chord))
 
+    let a_bass_line = [first_bass_measure; second_bass_measure; third_bass_measure; fourth_bass_measure;
+                       first_bass_measure; second_bass_measure; third_bass_measure; eighth_bass_measure]
 
-    let output_example () =
-      let a_bass_line = [first_bass_measure; second_bass_measure; third_bass_measure; fourth_bass_measure;
-                         first_bass_measure; second_bass_measure; third_bass_measure; eighth_bass_measure] in
-      let a_drum_line = [first_drum_measure; second_drum_measure; first_drum_measure; second_drum_measure;
-                         first_drum_measure; second_drum_measure; first_drum_measure; fourth_drum_measure] in
-      let a_guitar_line = [first_guitar_measure; first_guitar_measure; first_guitar_measure; second_guitar_measure;
-                           first_guitar_measure; first_guitar_measure; first_guitar_measure; third_guitar_measure] in
-      let b_guitar_line = [guitar_bis_first_measure; guitar_bis_second_measure; guitar_bis_first_measure; guitar_bis_third_measure;
-                           guitar_bis_first_measure; guitar_bis_second_measure; guitar_bis_first_measure; guitar_bis_fourth_measure] in
+    let a_drum_line = [first_drum_measure; second_drum_measure; first_drum_measure; second_drum_measure;
+                       first_drum_measure; second_drum_measure; first_drum_measure; fourth_drum_measure]
 
-      let rest_line = repeat_measures 8 [whole_rest] in
-      let bass = Music_xml.create_instrument 0 Music_xml.MidiInstruments.std5_bass (`String (std5_bass, a_bass_line @ a_bass_line @ a_bass_line @ a_bass_line @ a_bass_line @ a_bass_line)) in
-      let guitar = Music_xml.create_instrument 1 Music_xml.MidiInstruments.std_guitar (`String (std_guitar, rest_line @ rest_line @ a_guitar_line @ b_guitar_line @ a_guitar_line @ a_guitar_line)) in
-      let drum = Music_xml.create_instrument 3 Music_xml.MidiInstruments.std_drum (`Drum (rest_line @ a_drum_line @ a_drum_line @ a_drum_line @ a_drum_line @ a_drum_line)) in
+    let a_guitar_line = [first_guitar_measure; first_guitar_measure; first_guitar_measure; second_guitar_measure;
+                         first_guitar_measure; first_guitar_measure; first_guitar_measure; third_guitar_measure]
+
+    let b_guitar_line = [guitar_bis_first_measure; guitar_bis_second_measure; guitar_bis_first_measure; guitar_bis_third_measure;
+                         guitar_bis_first_measure; guitar_bis_second_measure; guitar_bis_first_measure; guitar_bis_fourth_measure]
+
+    let rest_line = repeat_measures 8 [whole_rest]
+
+    module B = struct
+        let t = create_part a_bass_line rest_line rest_line
+      end
+
+    module BD = struct
+        let t = create_part a_bass_line rest_line a_drum_line
+      end
+
+    module BDg = struct
+        let t = create_part a_bass_line a_guitar_line a_drum_line
+      end
+
+    module BDG = struct
+        let t = create_part a_bass_line b_guitar_line a_drum_line
+      end
+
+    let bass_high_nine = create_string_eighth 3 9
+    let bass_high_seven = create_string_eighth 3 7
+    let bass_high_ten = create_string_eighth 3 10
+    let bass_high_eleven = create_string_eighth 3 11
+    let bass_low_ten = create_string_eighth 1 10
+
+    let bass_groovy_first_measure =
+      create_measure
+        [bass_high_nine; bass_high_seven;
+         bass_ten; bass_seven;
+         bass_low_ten; bass_seven;
+         eighth_rest; bass_high_nine]
+
+    let bass_groovy_second_measure =
+      create_measure
+        [bass_high_seven; bass_ten;
+         bass_seven; bass_low_ten;
+         bass_seven; bass_low_ten;
+         bass_seven; bass_low_ten]
+
+    let bass_groovy_third_measure =
+      create_measure
+        [bass_high_nine; bass_high_seven;
+         bass_ten; bass_seven;
+         bass_low_ten; bass_seven;
+         bass_low_ten; bass_seven]
+
+    let bass_groovy_fourth_measure =
+      create_measure (repeat_note 8 bass_eight)
+
+    let bass_groovy_eighth_measure =
+      create_measure (repeat_note 8 bass_high_ten)
+
+    let bass_groovy_sixteenth_measure =
+      create_measure (repeat_note 8 bass_high_eleven)
+
+    module Chorus = struct
+        let rest = repeat_measures (4 * 4) [whole_rest]
+        let strings_measure_1 = [bass_groovy_first_measure;
+                                 bass_groovy_second_measure;
+                                 bass_groovy_third_measure;
+                                 bass_groovy_fourth_measure]
+        let strings_measure_2 = [bass_groovy_first_measure;
+                                 bass_groovy_second_measure;
+                                 bass_groovy_third_measure;
+                                 bass_groovy_eighth_measure]
+        let strings_measure_3 = [bass_groovy_first_measure;
+                                 bass_groovy_second_measure;
+                                 bass_groovy_third_measure;
+                                 bass_groovy_fourth_measure]
+        let strings_measure_4 = [bass_groovy_first_measure;
+                                 bass_groovy_second_measure;
+                                 bass_groovy_third_measure;
+                                 bass_groovy_sixteenth_measure]
+        let strings = List.fold_left (fun accum r ->
+                                      accum @ r) [] [strings_measure_1;
+                                                     strings_measure_2;
+                                                     strings_measure_3;
+                                                     strings_measure_4]
+        let t = create_part strings
+                            strings
+                            rest
+      end
+    let song_to_mxml song =
+      let bass = Music_xml.create_instrument 0 Music_xml.MidiInstruments.std5_bass (`String (std5_bass, song.bass)) in
+      let guitar = Music_xml.create_instrument 1 Music_xml.MidiInstruments.std_guitar (`String (std_guitar, song.guitar)) in
+      let drum = Music_xml.create_instrument 3 Music_xml.MidiInstruments.std_drum (`Drum (song.drum)) in
       let xml = Music_xml.create "try" "2015-25-04" 184 [bass; guitar; drum] in
       Music_xml.to_string xml
+
+    let output_example () =
+      let song = flatten [B.t; BD.t; BDg.t; BDG.t; BDg.t; BDg.t; Chorus.t] in
+      song_to_mxml song
+
   end
 
 let () =
