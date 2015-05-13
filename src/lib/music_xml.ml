@@ -182,7 +182,30 @@ let create_metronome ?(default_y=40) ?(beat_unit=`Quarter) bpm =
    </direction>
   >>
 
-let create_pitch instrument played_note =
+let _tie_to_xml f tiedo =
+  match tiedo with
+  | None -> []
+  | Some x ->
+     let a =
+       match x with
+       | `Start -> "start"
+       | `Stop -> "stop"
+     in
+     [f a]
+
+let tied_to_xml =
+  _tie_to_xml (fun a ->
+               <:xml<
+                <tied $alist:["type", a]$/>
+                >>)
+
+let tie_to_xml =
+  _tie_to_xml (fun a ->
+               <:xml<
+                <tie $alist:["type", a]$/>
+                >>)
+
+let create_pitch instrument played_note tied =
   let open Music in
   let string = played_note.string in
   let string_empty_note = instrument.strings.(string) in
@@ -212,12 +235,14 @@ let create_pitch instrument played_note =
      the string numbers are upside down *)
   let number_strings = Array.length instrument.strings in
   let curr_string = number_strings - played_note.string in
+  let tied = tied_to_xml tied in
   let notations = <:xml<
    <notations>
     <technical>
      <string>$int:curr_string$</string>
      <fret>$int:played_note.fret$</fret>
     </technical>
+    $list:tied$
    </notations>
     >>
   in
@@ -281,6 +306,7 @@ let create_mxml_note chord
     $list:create_chord_elt_if_necessary chord$
     <duration>$int:duration_to_duration note.duration$</duration>
     $list:instrument_lines$
+    $list:tie_to_xml note.tied$
     <voice>1</voice>
     <type>$str:duration_to_string note.duration$</type>
     $list:meter$
@@ -298,9 +324,11 @@ let create_drum_note ?(chord=false) id note =
        let notehead = <:xml<
                        <notehead>normal</notehead>
                        >> in
+       let tied = tied_to_xml note.tied in
        let empty_notation = <:xml<
                              <notations>
                              <technical/>
+                             $list:tied$
                              </notations>
                              >> in
        let instrument_line = Drum_music_xml.drum_element_to_instrument_line
@@ -314,7 +342,7 @@ let create_string_note ?(chord=false) instrument note =
   let open Music in
   let pitch_or_rest, notations = match note.note with
     | `Rest -> Constants.rest, []
-    | `Played x -> create_pitch instrument x
+    | `Played x -> create_pitch instrument x note.tied
   in
   create_mxml_note chord pitch_or_rest [] notations note
 
@@ -324,6 +352,7 @@ let transform_note note newnote =
     note=newnote;
     duration=note.duration;
     meter=note.meter;
+    tied=note.tied;
   }
 
 let create_measure ?(tempo=None)

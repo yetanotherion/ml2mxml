@@ -202,6 +202,23 @@ module Example = struct
     let bass_groovy_eighth_measure =
       create_measure (repeat_note 8 bass_high_ten)
 
+    let bass_groovy_ninth_measure =
+      create_measure
+        [bass_high_nine; bass_high_seven;
+         bass_ten; bass_seven;
+         bass_low_ten; bass_seven;
+         eighth_rest;
+         create_string_eighth ~tied:(Some `Start) 3 9;
+         ]
+
+    let bass_groovy_tenth_measure =
+      create_measure
+        [create_string_eighth ~tied:(Some `Stop) 3 9;
+         bass_high_seven;
+         bass_ten; bass_low_ten;
+         bass_seven; bass_low_ten;
+         bass_seven; bass_low_ten]
+
     let bass_groovy_sixteenth_measure =
       create_measure (repeat_note 8 bass_high_eleven)
 
@@ -215,8 +232,8 @@ module Example = struct
                                  bass_groovy_second_measure;
                                  bass_groovy_third_measure;
                                  bass_groovy_eighth_measure]
-        let strings_measure_3 = [bass_groovy_first_measure;
-                                 bass_groovy_second_measure;
+        let strings_measure_3 = [bass_groovy_ninth_measure;
+                                 bass_groovy_tenth_measure;
                                  bass_groovy_third_measure;
                                  bass_groovy_fourth_measure]
         let strings_measure_4 = [bass_groovy_first_measure;
