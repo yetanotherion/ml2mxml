@@ -48,7 +48,9 @@ module Example = struct
     let snare_q = create_drum_quarter `Snare
 
     let snare = create_drum_eighth `Snare
+    let snare_s = create_drum_sixteenth `Snare
     let kick_e = create_drum_eighth `Kick
+
     let tom1 = create_drum_sixteenth `Tom_01
     let tom2 = create_drum_sixteenth `Tom_02
     let tom2_e = create_drum_eighth `Tom_02
@@ -222,6 +224,36 @@ module Example = struct
     let bass_groovy_sixteenth_measure =
       create_measure (repeat_note 8 bass_high_eleven)
 
+    let drum_groovy_first_measure =
+      create_measure
+        [kick;
+         snare; eighth_rest;
+         kick_e; snare;
+         eighth_rest;
+         kick_e]
+
+    let drum_groovy_second_measure =
+      create_measure
+        [eighth_rest; snare;
+         quarter_rest;
+         kick;
+         snare; eighth_rest]
+
+    let drum_groovy_fourth_measure =
+      create_measure
+        [eighth_rest; snare;
+         quarter_rest;
+         kick_e; kick_e;
+         snare; kick_e]
+
+    let drum_groovy_eighth_measure =
+      create_measure
+        ([eighth_rest; snare;
+          quarter_rest] @ (repeat_note 8 snare_s))
+
+
+    let reduce l = List.fold_left (fun accum r ->
+                                   accum @ r) [] l
     module Chorus = struct
         let rest = repeat_measures (4 * 4) [whole_rest]
         let strings_measure_1 = [bass_groovy_first_measure;
@@ -240,14 +272,27 @@ module Example = struct
                                  bass_groovy_second_measure;
                                  bass_groovy_third_measure;
                                  bass_groovy_sixteenth_measure]
-        let strings = List.fold_left (fun accum r ->
-                                      accum @ r) [] [strings_measure_1;
-                                                     strings_measure_2;
-                                                     strings_measure_3;
-                                                     strings_measure_4]
+        let strings = reduce [strings_measure_1;
+                              strings_measure_2;
+                              strings_measure_3;
+                              strings_measure_4]
+
+        let drum_measure_1 = [drum_groovy_first_measure;
+                              drum_groovy_second_measure;
+                              drum_groovy_first_measure;
+                              drum_groovy_fourth_measure]
+        let drum_measure_2 = [drum_groovy_first_measure;
+                              drum_groovy_second_measure;
+                              drum_groovy_first_measure;
+                              drum_groovy_eighth_measure]
+        let drum = reduce [drum_measure_1;
+                           drum_measure_2;
+                           drum_measure_1;
+                           drum_measure_2]
+
         let t = create_part strings
                             strings
-                            rest
+                            drum
       end
     let song_to_mxml song =
       let bass = Music_xml.create_instrument 0 Music_xml.MidiInstruments.std5_bass (`String (std5_bass, song.bass)) in
