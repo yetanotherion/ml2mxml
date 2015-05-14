@@ -43,14 +43,17 @@ module Example = struct
     let bass_seven = create_string_eighth 2 7
     let bass_eight = create_string_eighth 2 8
     let bass_ten = create_string_eighth 2 10
+    let bass_high_nine = create_string_eighth 3 9
+    let bass_high_seven = create_string_eighth 3 7
+    let bass_high_ten = create_string_eighth 3 10
+    let bass_high_eleven = create_string_eighth 3 11
+    let bass_low_ten = create_string_eighth 1 10
 
     let kick = create_drum_quarter `Kick
     let snare_q = create_drum_quarter `Snare
-
     let snare = create_drum_eighth `Snare
     let snare_s = create_drum_sixteenth `Snare
     let kick_e = create_drum_eighth `Kick
-
     let tom1 = create_drum_sixteenth `Tom_01
     let tom2 = create_drum_sixteenth `Tom_02
     let tom2_e = create_drum_eighth `Tom_02
@@ -143,9 +146,10 @@ module Example = struct
 
     let a_bass_line = [first_bass_measure; second_bass_measure; third_bass_measure; fourth_bass_measure;
                        first_bass_measure; second_bass_measure; third_bass_measure; eighth_bass_measure]
+    let first_drum_line = [first_drum_measure; second_drum_measure; first_drum_measure; second_drum_measure]
+    let second_drum_line = [first_drum_measure; second_drum_measure; first_drum_measure; fourth_drum_measure]
 
-    let a_drum_line = [first_drum_measure; second_drum_measure; first_drum_measure; second_drum_measure;
-                       first_drum_measure; second_drum_measure; first_drum_measure; fourth_drum_measure]
+    let a_drum_line = first_drum_line @ second_drum_line
 
     let a_guitar_line = [first_guitar_measure; first_guitar_measure; first_guitar_measure; second_guitar_measure;
                          first_guitar_measure; first_guitar_measure; first_guitar_measure; third_guitar_measure]
@@ -169,93 +173,101 @@ module Example = struct
 
     module BDG = struct
         let t = create_part a_bass_line b_guitar_line a_drum_line
+        let second_drum_measure_bis =
+          create_measure [quarter_rest;
+                          eighth_rest; eighth_rest;
+                          eighth_rest; kick_e;
+                          snare_q]
+
+        let a_drum_line_bis =
+          [create_measure [whole_rest];
+           second_drum_measure_bis;
+           first_drum_measure;
+           second_drum_measure] @ second_drum_line
+
+        let t_without_drum_in_beggining =
+          create_part a_bass_line b_guitar_line a_drum_line_bis
+
       end
-
-    let bass_high_nine = create_string_eighth 3 9
-    let bass_high_seven = create_string_eighth 3 7
-    let bass_high_ten = create_string_eighth 3 10
-    let bass_high_eleven = create_string_eighth 3 11
-    let bass_low_ten = create_string_eighth 1 10
-
-    let bass_groovy_first_measure =
-      create_measure
-        [bass_high_nine; bass_high_seven;
-         bass_ten; bass_seven;
-         bass_low_ten; bass_seven;
-         eighth_rest; bass_high_nine]
-
-    let bass_groovy_second_measure =
-      create_measure
-        [bass_high_seven; bass_ten;
-         bass_seven; bass_low_ten;
-         bass_seven; bass_low_ten;
-         bass_seven; bass_low_ten]
-
-    let bass_groovy_third_measure =
-      create_measure
-        [bass_high_nine; bass_high_seven;
-         bass_ten; bass_seven;
-         bass_low_ten; bass_seven;
-         bass_low_ten; bass_seven]
-
-    let bass_groovy_fourth_measure =
-      create_measure (repeat_note 8 bass_eight)
-
-    let bass_groovy_eighth_measure =
-      create_measure (repeat_note 8 bass_high_ten)
-
-    let bass_groovy_ninth_measure =
-      create_measure
-        [bass_high_nine; bass_high_seven;
-         bass_ten; bass_seven;
-         bass_low_ten; bass_seven;
-         eighth_rest;
-         create_string_eighth ~tied:(Some `Start) 3 9;
-         ]
-
-    let bass_groovy_tenth_measure =
-      create_measure
-        [create_string_eighth ~tied:(Some `Stop) 3 9;
-         bass_high_seven;
-         bass_ten; bass_low_ten;
-         bass_seven; bass_low_ten;
-         bass_seven; bass_low_ten]
-
-    let bass_groovy_sixteenth_measure =
-      create_measure (repeat_note 8 bass_high_eleven)
-
-    let drum_groovy_first_measure =
-      create_measure
-        [kick;
-         snare; eighth_rest;
-         kick_e; snare;
-         eighth_rest;
-         kick_e]
-
-    let drum_groovy_second_measure =
-      create_measure
-        [eighth_rest; snare;
-         quarter_rest;
-         kick;
-         snare; eighth_rest]
-
-    let drum_groovy_fourth_measure =
-      create_measure
-        [eighth_rest; snare;
-         quarter_rest;
-         kick_e; kick_e;
-         snare; kick_e]
-
-    let drum_groovy_eighth_measure =
-      create_measure
-        ([eighth_rest; snare;
-          quarter_rest] @ (repeat_note 8 snare_s))
-
 
     let reduce l = List.fold_left (fun accum r ->
                                    accum @ r) [] l
     module Chorus = struct
-        let rest = repeat_measures (4 * 4) [whole_rest]
+        let bass_groovy_first_measure =
+          create_measure
+            [bass_high_nine; bass_high_seven;
+             bass_ten; bass_seven;
+             bass_low_ten; bass_seven;
+             eighth_rest; bass_high_nine]
+
+        let bass_groovy_second_measure =
+          create_measure
+            [bass_high_seven; bass_ten;
+             bass_seven; bass_low_ten;
+             bass_seven; bass_low_ten;
+             bass_seven; bass_low_ten]
+
+        let bass_groovy_third_measure =
+          create_measure
+            [bass_high_nine; bass_high_seven;
+             bass_ten; bass_seven;
+             bass_low_ten; bass_seven;
+             bass_low_ten; bass_seven]
+
+        let bass_groovy_fourth_measure =
+          create_measure (repeat_note 8 bass_eight)
+
+        let bass_groovy_eighth_measure =
+          create_measure (repeat_note 8 bass_high_ten)
+
+        let bass_groovy_ninth_measure =
+          create_measure
+            [bass_high_nine; bass_high_seven;
+             bass_ten; bass_seven;
+             bass_low_ten; bass_seven;
+             eighth_rest;
+             create_string_eighth ~tied:(Some `Start) 3 9;
+            ]
+
+        let bass_groovy_tenth_measure =
+          create_measure
+            [create_string_eighth ~tied:(Some `Stop) 3 9;
+             bass_high_seven;
+             bass_ten; bass_low_ten;
+             bass_seven; bass_low_ten;
+             bass_seven; bass_low_ten]
+
+        let bass_groovy_sixteenth_measure =
+          create_measure (repeat_note 8 bass_high_eleven)
+
+        let drum_groovy_first_measure =
+          create_measure
+            [kick;
+             snare; eighth_rest;
+             kick_e; snare;
+             eighth_rest;
+             kick_e]
+
+        let drum_groovy_second_measure =
+          create_measure
+            [eighth_rest; snare;
+             quarter_rest;
+             kick;
+             snare; eighth_rest]
+
+        let drum_groovy_fourth_measure =
+          create_measure
+            [eighth_rest; snare;
+             quarter_rest;
+             kick_e; kick_e;
+             snare; kick_e]
+
+        let drum_groovy_eighth_measure =
+          create_measure
+            ([eighth_rest; snare;
+              quarter_rest] @ (repeat_note 8 snare_s))
+
+
         let strings_measure_1 = [bass_groovy_first_measure;
                                  bass_groovy_second_measure;
                                  bass_groovy_third_measure;
@@ -302,7 +314,11 @@ module Example = struct
       Music_xml.to_string xml
 
     let output_example () =
-      let song = flatten [B.t; BD.t; BDg.t; BDG.t; BDg.t; BDg.t; Chorus.t] in
+      let song = flatten [B.t; BD.t; BDg.t; BDG.t;
+                          BDg.t; BDg.t; Chorus.t;
+                          BDG.t_without_drum_in_beggining;
+                          BDg.t; BDg.t; Chorus.t
+                         ] in
       song_to_mxml song
 
   end
