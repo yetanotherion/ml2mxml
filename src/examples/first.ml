@@ -1,39 +1,42 @@
 open Music
+type parts = {
+    bass: string_note measures;
+    guitar: string_note measures;
+    drum: drum_note measures;
+  }
+
+let create_part b g d =
+  let lb, lg, ld = List.length b, List.length g, List.length d in
+  let () =
+    if not (lb = lg && lg = ld) then failwith("invalid length")
+  in
+  {
+    bass = b;
+    guitar = g;
+    drum = d;
+  }
+
+let append_parts a b =
+  {
+    bass = a.bass @ b.bass;
+    guitar = a.guitar @ b.guitar;
+    drum = a.drum @ b.drum;
+  }
+
+let flatten l =
+  match l with
+  | [] -> {bass = [];
+           guitar = [];
+           drum = []}
+  | hd :: tl ->
+     List.fold_left (fun accum x ->
+                     append_parts accum x) hd tl
+
+let reduce l = List.fold_left (fun accum r ->
+                               accum @ r) [] l
+
 
 module Example = struct
-    type parts = {
-        bass: string_note measures;
-        guitar: string_note measures;
-        drum: drum_note measures;
-      }
-
-    let create_part b g d =
-      let lb, lg, ld = List.length b, List.length g, List.length d in
-      let () =
-        if not (lb = lg && lg = ld) then failwith("invalid length")
-      in
-      {
-        bass = b;
-        guitar = g;
-        drum = d;
-      }
-
-    let append_parts a b =
-      {
-        bass = a.bass @ b.bass;
-        guitar = a.guitar @ b.guitar;
-        drum = a.drum @ b.drum;
-      }
-
-    let flatten l =
-      match l with
-      | [] -> {bass = [];
-               guitar = [];
-               drum = []}
-      | hd :: tl ->
-         List.fold_left (fun accum x ->
-                         append_parts accum x) hd tl
-
     let sixteenth_rest = create_rest `Sixteenth
     let eighth_rest = create_rest `Eighth
     let quarter_rest = create_rest `Quarter
@@ -150,12 +153,14 @@ module Example = struct
     let second_drum_line = [first_drum_measure; second_drum_measure; first_drum_measure; fourth_drum_measure]
 
     let a_drum_line = first_drum_line @ second_drum_line
+    let create_a_guitar_line last =
+      [first_guitar_measure; first_guitar_measure; first_guitar_measure; last]
 
-    let a_guitar_line = [first_guitar_measure; first_guitar_measure; first_guitar_measure; second_guitar_measure;
-                         first_guitar_measure; first_guitar_measure; first_guitar_measure; third_guitar_measure]
+    let a_guitar_line = (create_a_guitar_line second_guitar_measure) @ (create_a_guitar_line third_guitar_measure)
+    let create_b_guitar_line last =
+      [guitar_bis_first_measure; guitar_bis_second_measure; guitar_bis_first_measure; last]
 
-    let b_guitar_line = [guitar_bis_first_measure; guitar_bis_second_measure; guitar_bis_first_measure; guitar_bis_third_measure;
-                         guitar_bis_first_measure; guitar_bis_second_measure; guitar_bis_first_measure; guitar_bis_fourth_measure]
+    let b_guitar_line = (create_b_guitar_line guitar_bis_third_measure) @ (create_b_guitar_line guitar_bis_fourth_measure)
 
     let rest_line = repeat_measures 8 [whole_rest]
 
@@ -190,8 +195,6 @@ module Example = struct
 
       end
 
-    let reduce l = List.fold_left (fun accum r ->
-                                   accum @ r) [] l
     module Chorus = struct
         let bass_groovy_first_measure =
           create_measure
@@ -267,36 +270,30 @@ module Example = struct
             ([eighth_rest; snare;
               quarter_rest] @ (repeat_note 8 snare_s))
 
+        let create_std_string_measure last_measure =
+          [bass_groovy_first_measure;
+           bass_groovy_second_measure;
+           bass_groovy_third_measure;
+           last_measure]
 
-        let strings_measure_1 = [bass_groovy_first_measure;
-                                 bass_groovy_second_measure;
-                                 bass_groovy_third_measure;
-                                 bass_groovy_fourth_measure]
-        let strings_measure_2 = [bass_groovy_first_measure;
-                                 bass_groovy_second_measure;
-                                 bass_groovy_third_measure;
-                                 bass_groovy_eighth_measure]
-        let strings_measure_3 = [bass_groovy_ninth_measure;
-                                 bass_groovy_tenth_measure;
-                                 bass_groovy_third_measure;
-                                 bass_groovy_fourth_measure]
-        let strings_measure_4 = [bass_groovy_first_measure;
-                                 bass_groovy_second_measure;
-                                 bass_groovy_third_measure;
-                                 bass_groovy_sixteenth_measure]
+        let strings_measure_1 = create_std_string_measure bass_groovy_fourth_measure
+        let strings_measure_2 = create_std_string_measure bass_groovy_eighth_measure
+        let strings_measure_3 = [bass_groovy_ninth_measure; bass_groovy_tenth_measure;
+                                 bass_groovy_third_measure; bass_groovy_fourth_measure]
+        let strings_measure_4 = create_std_string_measure bass_groovy_sixteenth_measure
+
         let strings = reduce [strings_measure_1;
                               strings_measure_2;
                               strings_measure_3;
                               strings_measure_4]
+        let create_std_drum_measure last_measure =
+          [drum_groovy_first_measure;
+           drum_groovy_second_measure;
+           drum_groovy_first_measure;
+           last_measure]
 
-        let drum_measure_1 = [drum_groovy_first_measure;
-                              drum_groovy_second_measure;
-                              drum_groovy_first_measure;
-                              drum_groovy_fourth_measure]
-        let drum_measure_2 = [drum_groovy_first_measure;
-                              drum_groovy_second_measure;
-                              drum_groovy_first_measure;
-                              drum_groovy_eighth_measure]
+        let drum_measure_1 = create_std_drum_measure drum_groovy_fourth_measure
+        let drum_measure_2 = create_std_drum_measure drum_groovy_eighth_measure
         let drum = reduce [drum_measure_1;
                            drum_measure_2;
                            drum_measure_1;
