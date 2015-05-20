@@ -253,6 +253,7 @@ let duration_to_string dur =
   | `Sixteenth -> "16th"
   | `Eighth -> "eighth"
   | `Quarter -> "quarter"
+  | `Half -> "half"
   | `Whole -> "whole"
 
 (* we hardcode that value to 24
@@ -265,6 +266,7 @@ let duration_to_duration dur =
   | `Sixteenth -> 6
   | `Eighth -> 12
   | `Quarter -> 24
+  | `Half -> 48
   | `Whole -> 96
 
 let time_modification meter =

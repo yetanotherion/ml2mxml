@@ -1,4 +1,4 @@
-type note_duration = [`Sixteenth | `Eighth | `Quarter | `Whole ]
+type note_duration = [`Sixteenth | `Eighth | `Quarter | `Half | `Whole ]
 
 let range ?step:(s=1) start_idx end_idx =
   (* range 0 3 == [0; 1; 2] *)
@@ -138,6 +138,11 @@ let duration_to_float n =
       | `Duple -> 1.0 /. 4.0
       | `Triple -> failwith ("not supported for now")
     end
+  | `Half -> begin
+      match n.meter with
+      | `Duple -> 1.0 /. 2.0
+      | `Triple -> failwith ("not supported for now")
+    end
   | `Whole -> begin
       match n.meter with
       | `Duple -> 1.0
@@ -206,6 +211,7 @@ let create_string_quarter ?(tied=None) ?(meter=`Duple) = create_string_note ~tie
 let create_drum_sixteenth ?(tied=None) ?(meter=`Duple) = create_drum_note ~tied ~meter `Sixteenth
 let create_drum_eighth ?(tied=None) ?(meter=`Duple) = create_drum_note ~tied ~meter `Eighth
 let create_drum_quarter ?(tied=None) ?(meter=`Duple) = create_drum_note ~tied ~meter `Quarter
+let create_drum_half ?(tied=None) ?(meter=`Duple) = create_drum_note ~tied ~meter `Half
 let create_drum_chord_quarter ?(tied=None) ?(meter=`Duple) = create_drum_chord ~tied ~meter `Quarter
 
 let make_standard_bass_shift note =
