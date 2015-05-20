@@ -345,8 +345,11 @@ module Example = struct
         let strings =
           reduce ([create_break 2 10; create_break 1 5])
 
+        let drum_measure =
+          create_measure [create_drum_half `Kick;
+                          create_drum_half `Snare]
         let drums =
-          repeat_measures 16 [whole_rest]
+          reduce (repeat_measures 16 [drum_measure])
 
         let t = create_part strings
                             strings
