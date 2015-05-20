@@ -54,9 +54,9 @@ module Example = struct
     let bass_high_eleven = create_string_eighth 3 11
     let bass_low_ten = create_string_eighth 1 10
 
-    let kick = create_drum_quarter `Kick
+    let kick_q = create_drum_quarter `Kick
     let snare_q = create_drum_quarter `Snare
-    let snare = create_drum_eighth `Snare
+    let snare_e = create_drum_eighth `Snare
     let snare_s = create_drum_sixteenth `Snare
     let kick_e = create_drum_eighth `Kick
     let tom1 = create_drum_sixteenth `Tom_01
@@ -101,23 +101,23 @@ module Example = struct
       create_measure ([eighth_rest] @ (repeat_note 7 bass_ten))
 
     let first_drum_measure =
-      create_measure [kick; snare;
-                      tom1; tom2; tom2;
-                      sixteenth_rest; tom2;
-                      sixteenth_rest; eighth_rest; tom2_e]
+      create_measure [kick_q; snare_q;
+                      kick_e; kick_e;
+                      snare_e; kick_e]
 
     let second_drum_measure =
-      create_measure [quarter_rest; snare;
-                      eighth_rest;
+      create_measure [quarter_rest;
+                      snare_q;
                       kick_e; kick_e;
-                      snare_q]
+                      snare_e; kick_e]
 
     let fourth_drum_measure =
-      create_measure [quarter_rest; snare;
+      create_measure [eighth_rest;
+                      snare_q;
                       eighth_rest;
                       kick_e; kick_e;
-                      create_drum_chord_quarter [`Snare;
-                                                 `Splash]]
+                      snare_e;
+                      create_drum_eighth `Splash]
 
     let first_guitar_measure =
       create_measure (repeat_note (4 * 3) (create_string_eighth ~meter:`Triple 1 7))
@@ -248,29 +248,29 @@ module Example = struct
 
         let drum_groovy_first_measure =
           create_measure
-            [kick;
-             snare; eighth_rest;
-             kick_e; snare;
+            [kick_q;
+             snare_e; eighth_rest;
+             kick_e; snare_e;
              eighth_rest;
              kick_e]
 
         let drum_groovy_second_measure =
           create_measure
-            [eighth_rest; snare;
+            [eighth_rest; snare_e;
              quarter_rest;
-             kick;
-             snare; eighth_rest]
+             kick_q;
+             snare_e; eighth_rest]
 
         let drum_groovy_fourth_measure =
           create_measure
-            [eighth_rest; snare;
+            [eighth_rest; snare_e;
              quarter_rest;
              kick_e; kick_e;
-             snare; kick_e]
+             snare_e; kick_e]
 
         let drum_groovy_eighth_measure =
           create_measure
-            ([eighth_rest; snare;
+            ([eighth_rest; snare_e;
               quarter_rest] @ (repeat_note 8 snare_s))
 
         let create_std_string_measure last_measure =
