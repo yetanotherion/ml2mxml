@@ -44,7 +44,9 @@ module Example = struct
 
     let bass_zero = create_string_eighth 2 0
     let bass_seven = create_string_eighth 2 7
+    let bass_seven_quarter = create_string_quarter 2 7
     let bass_eight = create_string_eighth 2 8
+
     let bass_ten = create_string_eighth 2 10
     let bass_high_nine = create_string_eighth 3 9
     let bass_high_seven = create_string_eighth 3 7
@@ -153,6 +155,7 @@ module Example = struct
     let second_drum_line = [first_drum_measure; second_drum_measure; first_drum_measure; fourth_drum_measure]
 
     let a_drum_line = first_drum_line @ second_drum_line
+
     let create_a_guitar_line last =
       [first_guitar_measure; first_guitar_measure; first_guitar_measure; last]
 
@@ -303,6 +306,53 @@ module Example = struct
                             strings
                             drum
       end
+    module Bridge = struct
+        let strings_first_measure =
+          create_measure [bass_high_nine; bass_high_seven;
+                          bass_low_ten; bass_seven_quarter;
+                          bass_low_ten;
+                          bass_low_ten; bass_low_ten]
+
+        let strings_second_measure =
+          create_measure [bass_seven; bass_low_ten;
+                          bass_low_ten; bass_low_ten;
+                          bass_seven; bass_low_ten;
+                          bass_low_ten; bass_low_ten]
+        let create_break ls lf =
+          let create_quarter_eighth s f =
+            create_string_quarter s f, create_string_eighth s f
+          in
+          let quarter, eigth = create_quarter_eighth 2 8 in
+          let l_q, l_e = create_quarter_eighth ls lf in
+          let f =
+            create_measure [bass_high_nine; bass_high_seven;
+                            bass_low_ten; quarter;
+                            eigth; eigth; eigth]
+          in
+          let s =
+            create_measure [eigth; eigth; eigth;
+                            l_q;
+                            l_e; l_e;
+                            l_e]
+          in
+          let beggining =
+            reduce (repeat_measures 3 [strings_first_measure;
+                                       strings_second_measure])
+          in
+          let res = beggining @ [f; s] in
+          res
+
+        let strings =
+          reduce ([create_break 2 10; create_break 1 5])
+
+        let drums =
+          repeat_measures 16 [whole_rest]
+
+        let t = create_part strings
+                            strings
+                            drums
+
+      end
     let song_to_mxml song =
       let bass = Music_xml.create_instrument 0 Music_xml.MidiInstruments.std5_bass (`String (std5_bass, song.bass)) in
       let guitar = Music_xml.create_instrument 1 Music_xml.MidiInstruments.std_guitar (`String (std_guitar, song.guitar)) in
@@ -314,7 +364,9 @@ module Example = struct
       let song = flatten [B.t; BD.t; BDg.t; BDG.t;
                           BDg.t; BDg.t; Chorus.t;
                           BDG.t_without_drum_in_beggining;
-                          BDg.t; BDg.t; Chorus.t
+                          BDg.t; BDg.t; Chorus.t; Bridge.t;
+                          BDG.t_without_drum_in_beggining;
+                          BDg.t; BDg.t; Bridge.t
                          ] in
       song_to_mxml song
 

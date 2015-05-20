@@ -202,6 +202,7 @@ let create_drum_chord ?(tied=None) ?(meter=`Duple) dur l =
 
 let create_string_eighth ?(tied=None) ?(meter=`Duple) = create_string_note ~tied ~meter `Eighth
 let create_string_chord_eighth ?(tied=None) ?(meter=`Duple) = create_string_chord ~tied ~meter `Eighth
+let create_string_quarter ?(tied=None) ?(meter=`Duple) = create_string_note ~tied ~meter `Quarter
 let create_drum_sixteenth ?(tied=None) ?(meter=`Duple) = create_drum_note ~tied ~meter `Sixteenth
 let create_drum_eighth ?(tied=None) ?(meter=`Duple) = create_drum_note ~tied ~meter `Eighth
 let create_drum_quarter ?(tied=None) ?(meter=`Duple) = create_drum_note ~tied ~meter `Quarter
