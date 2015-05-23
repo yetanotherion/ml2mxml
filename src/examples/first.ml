@@ -109,7 +109,7 @@ module Example = struct
       create_measure [quarter_rest;
                       snare_q;
                       kick_e; kick_e;
-                      snare_e; kick_e]
+                      snare_e; eighth_rest]
 
     let fourth_drum_measure =
       create_measure [eighth_rest;
@@ -117,7 +117,9 @@ module Example = struct
                       eighth_rest;
                       kick_e; kick_e;
                       snare_e;
-                      create_drum_eighth `Splash]
+                      create_drum_chord `Eighth [`Crash;
+                                                 `Splash;
+                                                 `Kick]]
 
     let first_guitar_measure =
       create_measure (repeat_note (4 * 3) (create_string_eighth ~meter:`Triple 1 7))
@@ -266,7 +268,9 @@ module Example = struct
             [eighth_rest; snare_e;
              quarter_rest;
              kick_e; kick_e;
-             snare_e; kick_e]
+             snare_e; create_drum_chord `Eighth [`Kick;
+                                                 `Crash;
+                                                 `Splash]]
 
         let drum_groovy_eighth_measure =
           create_measure
@@ -345,11 +349,31 @@ module Example = struct
         let strings =
           reduce ([create_break 2 10; create_break 1 5])
 
-        let drum_measure =
-          create_measure [create_drum_half `Kick;
-                          create_drum_half `Snare]
+        let drum_parts ?(break=None) () =
+          let first_one =
+            match break with
+            | None ->
+               create_drum_half `Kick
+            | Some x ->
+               match x with
+               | `Splash ->
+                  create_drum_chord `Half [`Kick;
+                                           `Crash;
+                                           `Splash]
+               | `China ->
+                  create_drum_chord `Half [`Kick;
+                                           `China]
+          in
+          [create_measure [first_one;
+                           create_drum_half `Snare];
+           create_measure [create_drum_half `Kick;
+                           create_drum_half `Snare]]
+        let first = [drum_parts (); drum_parts ~break:(Some `Splash) ()]
+        let second = reduce ([drum_parts ~break:(Some `China) ();
+                              drum_parts ~break:(Some `Splash) ()])
         let drums =
-          reduce (repeat_measures 16 [drum_measure])
+          reduce (first @
+                    (repeat_measures 3 second))
 
         let t = create_part strings
                             strings
