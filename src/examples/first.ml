@@ -101,8 +101,13 @@ module Example = struct
       create_measure ([eighth_rest] @ (repeat_note 7 bass_ten))
 
     let first_drum_measure =
+      let kick_hi_hat = create_drum_chord `Sixteenth [`Kick;
+                                                      `Hihat] in
       create_measure [kick_q; snare_q;
-                      kick_e; kick_e;
+                      kick_hi_hat;
+                      create_drum_sixteenth `Hihat;
+                      kick_hi_hat;
+                      create_rest `Sixteenth;
                       snare_e; kick_e]
 
     let second_drum_measure =
@@ -349,9 +354,9 @@ module Example = struct
         let strings =
           reduce ([create_break 2 10; create_break 1 5])
 
-        let drum_parts ?(break=None) () =
-          let first_one =
-            match break with
+        let drum_parts ?(beggining=None) ?(ending=None) () =
+          let create_first opt =
+            match opt with
             | None ->
                create_drum_half `Kick
             | Some x ->
@@ -364,16 +369,22 @@ module Example = struct
                   create_drum_chord `Half [`Kick;
                                            `China]
           in
-          [create_measure [first_one;
-                           create_drum_half `Snare];
-           create_measure [create_drum_half `Kick;
-                           create_drum_half `Snare]]
-        let first = [drum_parts (); drum_parts ~break:(Some `Splash) ()]
-        let second = reduce ([drum_parts ~break:(Some `China) ();
-                              drum_parts ~break:(Some `Splash) ()])
-        let drums =
-          reduce (first @
-                    (repeat_measures 3 second))
+          let first_one = create_first beggining in
+          let beg = create_measure [first_one;
+                                    create_drum_half `Snare]
+          in
+          let first_one = create_first ending in
+          let ending = create_measure [first_one;
+                                       create_drum_half `Snare] in
+          [beg; ending]
+        let create_drum_part first_beg =
+          let first = drum_parts ~beggining:first_beg () in
+          let second = drum_parts ~beggining:(Some `Splash) () in
+          let third = drum_parts ~beggining:(Some `China) () in
+          let fourth = drum_parts ~beggining:(Some `Splash) ~ending:(Some `China) () in
+          reduce [first; second; third; fourth]
+
+        let drums = (create_drum_part None) @ (create_drum_part (Some `Splash))
 
         let t = create_part strings
                             strings
