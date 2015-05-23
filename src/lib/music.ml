@@ -85,6 +85,7 @@ type string_instrument = {
 type drum_element = [
   | `Kick
   | `Snare
+  | `Snare_muted
   | `Cowbell
   | `Tom
   | `Tom_01
@@ -92,10 +93,14 @@ type drum_element = [
   | `Tom_03
   | `Tom_04
   | `Hihat
+  | `Hihat_02
   | `PedalHiHat
   | `Crash
+  | `Crash_01
   | `Splash
   | `Ride
+  | `Ride_01
+  | `Ride_bell
   | `China ]
 
 type string_note = [

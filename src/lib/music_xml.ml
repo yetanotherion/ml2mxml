@@ -323,9 +323,7 @@ let create_drum_note ?(chord=false) id note =
     | `Rest -> Constants.rest, [], []
     | `Played x ->
        let unpitched = Drum_music_xml.drum_element_to_unpitched x in
-       let notehead = <:xml<
-                       <notehead>normal</notehead>
-                       >> in
+       let notehead = Drum_music_xml.drum_element_to_notehead x in
        let tied = tied_to_xml note.tied in
        let empty_notation = <:xml<
                              <notations>
