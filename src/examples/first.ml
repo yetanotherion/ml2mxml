@@ -100,22 +100,31 @@ module Example = struct
     let eighth_bass_measure =
       create_measure ([eighth_rest] @ (repeat_note 7 bass_ten))
 
-    let first_drum_measure ?(crash=false) () =
-      let kick_hi_hat = create_drum_chord `Sixteenth [`Kick;
-                                                      `Hihat] in
+    let first_drum_measure ?(crash=false) ?(hihat=true) () =
+      let ending = [snare_e; kick_e] in
       let first_kick =
         if crash then
-             create_drum_chord `Quarter [`Crash;
-                                         `Kick]
+          create_drum_chord `Quarter [`Crash;
+                                      `Kick]
         else
           kick_q
       in
-      create_measure [first_kick; snare_q;
-                      kick_hi_hat;
-                      create_drum_sixteenth `Hihat;
-                      kick_hi_hat;
-                      create_rest `Sixteenth;
-                      snare_e; kick_e]
+      let beggining = [first_kick;
+                       snare_q]
+      in
+      let middle =
+        if hihat then
+             let kick_hi_hat = create_drum_chord `Sixteenth [`Kick;
+                                                             `Hihat] in
+             [kick_hi_hat;
+              create_drum_sixteenth `Hihat;
+              kick_hi_hat;
+              create_rest `Sixteenth]
+        else
+          [kick_e;
+           kick_e]
+      in
+      create_measure (beggining @ middle @ ending)
 
     let second_drum_measure ?(variation=false) () =
       let start = [quarter_rest;
@@ -161,10 +170,21 @@ module Example = struct
 
     let a_bass_line = [first_bass_measure; second_bass_measure; third_bass_measure; fourth_bass_measure;
                        first_bass_measure; second_bass_measure; third_bass_measure; eighth_bass_measure]
-    let first_drum_line ?(variation=false) () =
-      [first_drum_measure (); second_drum_measure ~variation (); first_drum_measure () ; second_drum_measure ()]
 
-    let create_drum_line_with_break ?(break=`First) () =
+    let first_drum_line ?(variation=`None) ?(hihat=true) () =
+      let second =
+        match variation with
+        | `All | `FstOnly -> second_drum_measure ~variation:true ()
+        | `None -> second_drum_measure ~variation:false ()
+      in
+      let last =
+        match variation with
+        | `All -> second_drum_measure ~variation:true ()
+        | `None | `FstOnly -> second_drum_measure ~variation:false ()
+      in
+      [first_drum_measure ~hihat (); second; first_drum_measure ~hihat () ; last]
+
+    let create_drum_line_with_break ?(break=`First) ?(hihat=true) () =
       let break_measure =
         match break with
         | `First ->
@@ -187,10 +207,10 @@ module Example = struct
                                                       `Snare];
                            eighth_rest]
       in
-      [first_drum_measure ~crash:true () ; second_drum_measure (); first_drum_measure (); break_measure]
+      [first_drum_measure ~crash:true ~hihat () ; second_drum_measure (); first_drum_measure ~hihat (); break_measure]
 
-    let a_drum_line ?(variation=false) ?(break=`First) () =
-      first_drum_line ~variation () @ (create_drum_line_with_break ~break ())
+    let a_drum_line ?(variation=`None) ?(break=`First) ?(hihat=true) () =
+      first_drum_line ~variation ~hihat () @ (create_drum_line_with_break ~break ~hihat ())
 
     let rest_line = repeat_measures 8 [whole_rest]
 
@@ -199,7 +219,7 @@ module Example = struct
       end
 
     module BD = struct
-        let t = create_part a_bass_line rest_line (a_drum_line ())
+        let t = create_part a_bass_line rest_line (a_drum_line ~hihat:false ())
       end
 
     module BDg = struct
@@ -222,10 +242,10 @@ module Example = struct
           let f = create_guitar_measures (1, 12) (1, 10) in
           let s = create_guitar_measures (1, 7) (1, 10) in
           f @ s
-        let t = create_part a_bass_line std_guitar_line (a_drum_line ())
-        let t_drum_guitar_var = create_part a_bass_line var_guitar_line (a_drum_line ~variation:true ~break:`Second ())
-        let t_drum_var_only = create_part a_bass_line std_guitar_line (a_drum_line ~variation:true ~break:`First ())
-        let t_guitar_var_only = create_part a_bass_line var_guitar_line (a_drum_line ~break:`Second ())
+        let t_before_chorus_one = create_part a_bass_line std_guitar_line (a_drum_line ~hihat:false ())
+        let t_before_chorus_two = create_part a_bass_line var_guitar_line (a_drum_line ~variation:`FstOnly ~hihat:false ~break:`Second ())
+        let t_after_chorus_one = create_part a_bass_line std_guitar_line (a_drum_line ~hihat:true ~variation:`All ())
+        let t_after_chorus_two = create_part a_bass_line var_guitar_line (a_drum_line ~hihat:true ~variation:`All ~break:`Second ())
       end
 
     module BDG = struct
@@ -446,12 +466,12 @@ module Example = struct
       Music_xml.to_string xml
 
     let output_example () =
-      let song = flatten [B.t; BD.t; BDg.t; BDG.t;
-                          BDg.t; BDg.t_drum_guitar_var; Chorus.t;
+      let song = flatten [B.t; BD.t; BDg.t_before_chorus_one; BDG.t;
+                          BDg.t_before_chorus_one; BDg.t_before_chorus_two; Chorus.t;
                           BDG.t_without_drum_in_beggining;
-                          BDg.t_drum_var_only; BDg.t_guitar_var_only; Chorus.t; Bridge.t;
+                          BDg.t_after_chorus_one; BDg.t_after_chorus_two; Chorus.t; Bridge.t;
                           BDG.t_without_drum_in_beggining;
-                          BDg.t; BDg.t_drum_guitar_var; Bridge.t
+                          BDg.t_after_chorus_one; BDg.t_after_chorus_two; Bridge.t
                          ] in
       song_to_mxml song
 
