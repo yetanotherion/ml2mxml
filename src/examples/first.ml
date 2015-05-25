@@ -138,25 +138,6 @@ module Example = struct
       create_measure (start @ ending)
 
 
-    let fourth_drum_measure =
-      create_measure [eighth_rest;
-                      snare_q;
-                      eighth_rest;
-                      kick_e; kick_e;
-                      snare_e;
-                      create_drum_chord `Eighth [`Crash;
-                                                 `Splash;
-                                                 `Kick]]
-
-    let first_guitar_measure =
-      create_measure (repeat_note (4 * 3) (create_string_eighth ~meter:`Triple 1 7))
-
-    let second_guitar_measure =
-      create_measure (repeat_note (4 * 3) (create_string_eighth ~meter:`Triple 1 8))
-
-    let third_guitar_measure =
-      create_measure (repeat_note (4 * 3) (create_string_eighth ~meter:`Triple 1 10))
-
     let guitar_bis_first_measure =
       create_measure
         ((repeat_note 2 zero_chord) @
@@ -180,19 +161,36 @@ module Example = struct
 
     let a_bass_line = [first_bass_measure; second_bass_measure; third_bass_measure; fourth_bass_measure;
                        first_bass_measure; second_bass_measure; third_bass_measure; eighth_bass_measure]
-    let first_drum_line ?(variation=false) () = [first_drum_measure (); second_drum_measure ~variation (); first_drum_measure () ; second_drum_measure ()]
-    let second_drum_line = [first_drum_measure ~crash:true () ; second_drum_measure (); first_drum_measure (); fourth_drum_measure]
+    let first_drum_line ?(variation=false) () =
+      [first_drum_measure (); second_drum_measure ~variation (); first_drum_measure () ; second_drum_measure ()]
 
-    let a_drum_line ?(variation=false) () = first_drum_line ~variation () @ second_drum_line
+    let create_drum_line_with_break ?(break=`First) () =
+      let break_measure =
+        match break with
+        | `First ->
+           create_measure [eighth_rest;
+                           snare_q;
+                           eighth_rest;
+                           kick_e; kick_e;
+                           snare_e;
+                           create_drum_chord `Eighth [`Crash;
+                                                      `Splash;
+                                                      `Kick]]
 
-    let create_a_guitar_line last =
-      [first_guitar_measure; first_guitar_measure; first_guitar_measure; last]
 
-    let a_guitar_line = (create_a_guitar_line second_guitar_measure) @ (create_a_guitar_line third_guitar_measure)
-    let create_b_guitar_line last =
-      [guitar_bis_first_measure; guitar_bis_second_measure; guitar_bis_first_measure; last]
+        | `Second ->
+           create_measure [eighth_rest; snare_e;
+                           snare_e; kick_e;
+                           snare_e; eighth_rest;
+                           create_drum_chord `Eighth [`Splash;
+                                                      `Crash;
+                                                      `Snare];
+                           eighth_rest]
+      in
+      [first_drum_measure ~crash:true () ; second_drum_measure (); first_drum_measure (); break_measure]
 
-    let b_guitar_line = (create_b_guitar_line guitar_bis_third_measure) @ (create_b_guitar_line guitar_bis_fourth_measure)
+    let a_drum_line ?(variation=false) ?(break=`First) () =
+      first_drum_line ~variation () @ (create_drum_line_with_break ~break ())
 
     let rest_line = repeat_measures 8 [whole_rest]
 
@@ -205,11 +203,37 @@ module Example = struct
       end
 
     module BDg = struct
-        let t = create_part a_bass_line a_guitar_line (a_drum_line ())
-        let t_var = create_part a_bass_line a_guitar_line (a_drum_line ~variation:true ())
+
+        let create_triple_measure note =
+          let ns, nf = note in
+          create_measure (repeat_note (4 * 3) (create_string_eighth ~meter:`Triple ns nf))
+
+        let create_guitar_measures first_note second_note =
+          let first_three = create_triple_measure first_note in
+          let last = create_triple_measure second_note in
+          [first_three; first_three; first_three; last]
+
+        let std_guitar_line =
+          let first_note, second_note, third_note = (1, 7), (1, 8), (1, 10) in
+          (create_guitar_measures first_note second_note) @ (create_guitar_measures first_note third_note)
+
+        let std_guitar_line = std_guitar_line
+        let var_guitar_line =
+          let f = create_guitar_measures (1, 12) (1, 10) in
+          let s = create_guitar_measures (1, 7) (1, 10) in
+          f @ s
+        let t = create_part a_bass_line std_guitar_line (a_drum_line ())
+        let t_drum_guitar_var = create_part a_bass_line var_guitar_line (a_drum_line ~variation:true ~break:`Second ())
+        let t_drum_var_only = create_part a_bass_line std_guitar_line (a_drum_line ~variation:true ~break:`First ())
+        let t_guitar_var_only = create_part a_bass_line var_guitar_line (a_drum_line ~break:`Second ())
       end
 
     module BDG = struct
+        let create_b_guitar_line last =
+          [guitar_bis_first_measure; guitar_bis_second_measure; guitar_bis_first_measure; last]
+
+        let b_guitar_line = (create_b_guitar_line guitar_bis_third_measure) @ (create_b_guitar_line guitar_bis_fourth_measure)
+
         let t = create_part a_bass_line b_guitar_line (a_drum_line ())
         let second_drum_measure_bis =
           create_measure [quarter_rest;
@@ -221,7 +245,7 @@ module Example = struct
           [create_measure [whole_rest];
            second_drum_measure_bis;
            first_drum_measure ();
-           second_drum_measure ()] @ second_drum_line
+           second_drum_measure ()] @ (create_drum_line_with_break ())
 
         let t_without_drum_in_beggining =
           create_part a_bass_line b_guitar_line a_drum_line_bis
@@ -423,11 +447,11 @@ module Example = struct
 
     let output_example () =
       let song = flatten [B.t; BD.t; BDg.t; BDG.t;
-                          BDg.t; BDg.t_var; Chorus.t;
+                          BDg.t; BDg.t_drum_guitar_var; Chorus.t;
                           BDG.t_without_drum_in_beggining;
-                          BDg.t_var; BDg.t; Chorus.t; Bridge.t;
+                          BDg.t_drum_var_only; BDg.t_guitar_var_only; Chorus.t; Bridge.t;
                           BDG.t_without_drum_in_beggining;
-                          BDg.t; BDg.t_var; Bridge.t
+                          BDg.t; BDg.t_drum_guitar_var; Bridge.t
                          ] in
       song_to_mxml song
 
