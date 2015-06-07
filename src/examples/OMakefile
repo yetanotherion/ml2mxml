@@ -4,13 +4,18 @@ OCAMLFLAGS    += -I ../lib riff.cma
 
 FILES[] =
     first
+    first_all
+    verse
+    bridge
+    chorus
+    utils
 
 OCAMLPACKS[] =
     cow
 
-CLEAN = rm -rf *.cm* *~ .\#* *.o *.lib *.omc *.install *.tmp first first.run
+CLEAN = rm -rf *.cm* *~ .\#* *.o *.lib *.omc *.install *.tmp first first.run first_all first_all.run
 
 clean:
     $(CLEAN)
 
-.DEFAULT: $(OCamlProgram first, $(FILES))
+.DEFAULT: $(OCamlProgram first, $(FILES)) $(OCamlProgram first_all, $(FILES))
