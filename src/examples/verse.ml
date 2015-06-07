@@ -26,12 +26,12 @@ module BDg = struct
 
     let std_guitar_line = std_guitar_line
     let var_guitar_line =
-      let f = create_guitar_measures (1, 12) (1, 10) in
+      let f = create_guitar_measures (0, 0) (1, 5) in
       let s = create_guitar_measures (1, 7) (1, 10) in
       f @ s
     let other_guitar_line =
       let f = create_guitar_measures (1, 7) (1, 3) in
-      let s = create_guitar_measures (0, 0) (1, 5) in
+      let s = create_guitar_measures (0, 0) (0, 1) in
       f @ s
 
     let t_before_chorus_one = create_part a_bass_line std_guitar_line (a_drum_line ~hihat:false ())
