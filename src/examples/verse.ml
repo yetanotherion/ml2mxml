@@ -34,7 +34,12 @@ module BDg = struct
       let s = create_guitar_measures (0, 0) (0, 1) in
       f @ s
 
-    let t_before_chorus_one = create_part a_bass_line std_guitar_line (a_drum_line ~hihat:false ())
+    let other_guitar_before_chorus =
+      let f = create_guitar_measures (1, 7) (1, 3) in
+      let s = create_guitar_measures (0, 0) (0, 0) in
+      f @ s
+
+    let t_before_chorus_one = create_part a_bass_line other_guitar_before_chorus (a_drum_line ~hihat:false ())
     let t_before_chorus_two = create_part a_bass_line var_guitar_line (a_drum_line ~variation:`FstOnly ~hihat:false ~break:`Second ())
     let t_before_chorus_one_prime = create_part a_bass_line other_guitar_line (a_drum_line ~variation:`FstOnly ~hihat:false ~break:`Second ())
     let t_after_chorus_one = create_part a_bass_line other_guitar_line (a_drum_line ~hihat:true ~variation:`All ())
@@ -43,13 +48,13 @@ module BDg = struct
 
 module BDG = struct
     let zero_chord = create_string_chord_eighth [(1, 7);
-                                                 (2, 9);
+                                                 (2, 7);
                                                  (3, 9)]
     let eight_chord = create_string_chord_eighth [(1, 8);
-                                                  (2, 10);
+                                                  (2, 8);
                                                   (3, 10)]
     let ten_chord = create_string_chord_eighth [(1, 10);
-                                                (2, 12);
+                                                (2, 10);
                                                 (3, 12)]
 
     let guitar_bis_first_measure =
