@@ -4,59 +4,88 @@ open Verse
 
 
 module Example = struct
-    module BDGAll = struct
+    module Groove = struct
+        let create () =
+          let bass_grooves = reduce [Chorus.bass_groovy_one;
+                                     Chorus.bass_groovy_bis] in
+          let guitar_groovy_start = Chorus.create_guitar bass_grooves in
 
-        let generate_tonal tonal_string tonal_note semi_tone_nb =
-          let new_string = tonal_string + 1 in
-          let new_note = tonal_note + semi_tone_nb - 5 in
-          create_string_chord_eighth [(tonal_string, tonal_note);
-                                      (new_string, new_note);
-                                      (tonal_string + 2, tonal_note + 2)]
-        (*(tonal_string + 2, tonal_note + 2)]*)
+          let guitar_groovy_end =
+            let first = create_string_eighth 3 5 in
+            let second = create_string_eighth 3 3 in
+            let third = create_string_eighth 1 4 in
+            let fourth = create_string_eighth 1 3 in
+            let fifth = create_string_eighth 0 4 in
+            let end_one = create_string_eighth 1 4 in
+            let end_two = create_string_eighth 2 1 in
 
-        let create_first first second third fb =
-          let first_measure f =
-            create_measure
-              ((repeat_note 2 f) @
-                 (repeat_note 3 eighth_rest) @
-                   (repeat_note 3 f))
+            let guitar_groove_first =
+              [first; second;
+               third; fourth;
+               fifth; fourth;
+               fifth; first]
+            in
+            let guitar_groove_two =
+              [second; third;
+               fourth; fifth;
+               fourth; fifth;
+               fourth; fifth]
+            in
+            let guitar_groove_third =
+              [first; second;
+               third; fourth;
+               fifth; fourth;
+               fifth; fourth]
+            in
+            reduce [[guitar_groove_first;
+                     guitar_groove_two;
+                     guitar_groove_third;
+                     create_measure (repeat_note 8 end_one)];
+                    [guitar_groove_first;
+                     guitar_groove_two;
+                     guitar_groove_third;
+                     create_measure (repeat_note 8 end_two)]]
           in
-          let second_measure f =
-            create_measure
-              ([eighth_rest; f;
-                eighth_rest; f;
-                eighth_rest; f;
-                f; f])
+          let guitar = (reduce [guitar_groovy_start;
+                                guitar_groovy_end])
           in
-          let last_measure last =
-            create_measure
-              (eighth_rest :: (repeat_note 7 last))
+          let t = create_part Chorus.bass_groovy
+                              guitar
+                              Chorus.drum in
+          flatten [Verse.BDg.t_after_chorus_two;
+                   t]
+
+        let lower_tone note semi_tone_nb =
+          let s, n = note in
+          if n >= semi_tone_nb then s, n - semi_tone_nb
+          else (s - 1, n - semi_tone_nb + 5)
+
+        (*let generate_all note =
+          let riffs =
+            List.map (fun semi_tone_nb ->
+                      let second_note = lower_tone note semi_tone_nb in
+                      let l = List.map (fun semi_tone_nb ->
+                                 let third_note = lower_tone note semi_tone_nb in
+                                 let l = List.map (fun semi_tone_nb ->
+                                                   let fourth_note = lower_tone note semi_tone_nb in
+                                                   let l = List.map (fun semi_tone_nb ->
+                                                                     let fifth_note = lower_tone note semi_tone_nb in
+                                                                     let f (s, n) = Printf.sprintf "(%d, %d)" s n in
+                                                                     let () = Printf.printf "%s %s %s %s %s (%d)\n" (f note) (f second_note)
+                                                                                            (f third_note) (f fourth_note) (f fifth_note) (semi_tone_nb) in
+                                                                     create note second_note third_note fourth_note fifth_note)
+                                                                    (range (semi_tone_nb + 1) 12)
+                                                   in
+                                                   flatten l) (range (semi_tone_nb + 1) 12) in
+                                 flatten l)
+                                       (range (semi_tone_nb + 1) 12)
+                      in
+                      flatten l) (range 2 3)
           in
-          [first_measure first; second_measure first; first_measure first; last_measure second;
-           first_measure fb; second_measure fb; first_measure fb; last_measure third]
-
-        let generate_t semi_tone_one semi_tone_two semi_tone_three semi_tone_one_bis =
-          let first = generate_tonal 1 7 semi_tone_one in
-          let second = generate_tonal 1 8 semi_tone_two in
-          let third = generate_tonal 1 10 semi_tone_three in
-          let first_bis = generate_tonal 1 7 semi_tone_one_bis in
-          create_part a_bass_line (create_first first second third first_bis) (a_drum_line ())
-
-        (*let make_all_riffs xrange yrange zrange = List.map (
-                            fun x ->
-                            let res =
-                              List.map
-                                (fun y ->
-                                 let res =
-                                   List.map (fun z ->
-                                             generate_t x y z x) zrange
-                                 in
-                                 flatten res) yrange
-                            in
-                            flatten res) xrange
-           let all_riffs = make_all_riffs [7] [6] [8]*)
-        let all_riffs = [generate_t 7 6 7 7]
-
+          flatten riffs*)
+                  (*let all_riffs = create (2, 7) (2, 5) (2, 3) (1, 1) (1, 0)*)
+          (* let all_riffs = generate_all (3, 7)*)
+        let all_riffs = create ()
       end
 
     let song_to_mxml song =
@@ -67,7 +96,7 @@ module Example = struct
       Music_xml.to_string xml
 
     let output_example () =
-      let song = flatten (BDGAll.all_riffs) in
+      let song = Groove.all_riffs in
       song_to_mxml song
 
   end

@@ -176,6 +176,39 @@ let create_rest ?(meter=`Duple) dur =
    tied=None;
   }
 
+let rec find_note_in_guitar n =
+  if n.fret < 0 then (
+    if n.string = 0 then failwith("could not go lower")
+    else
+      find_note_in_guitar {string=n.string - 1;
+                           fret=n.fret + 5}
+  )
+  else
+    if n.fret > 22 then (
+      if n.string = 4 then failwith("could not go higher")
+      else find_note_in_guitar {string=n.string + 1;
+                                fret=n.fret - 5})
+    else n
+
+let transpose_note semi_tone n =
+  find_note_in_guitar {string=n.string;
+                       fret=n.fret + semi_tone}
+
+
+let transpose_string_note semi_tone n =
+  let f = transpose_note semi_tone in
+  let new_note =
+    match n.note with
+    | `Rest -> `Rest
+    | `Single x -> `Single (f x)
+    | `Chord l -> `Chord (List.map f l)
+  in
+  {note=new_note;
+   duration=n.duration;
+   tied=n.tied;
+   meter=n.meter}
+
+let lower_string_note_by_fifth n = transpose_string_note (-5) n
 
 let repeat_note_patterns n notes = List.fold_left (fun accum i ->
                                                    accum @ notes) [] (range 0 n)
@@ -194,6 +227,12 @@ let create_measure notes =
 
 let repeat_measures n m =
   List.map (fun _ -> m) (range 0 n)
+
+
+let transpose_measures semi_tone_nb measures =
+  List.map (fun measure ->
+            create_measure (List.map (transpose_string_note semi_tone_nb) measure)) measures
+
 
 let create_string_note ?(tied=None) ?(meter=`Duple) dur s v =
   create_single_note ~tied ~meter dur ({string=s;

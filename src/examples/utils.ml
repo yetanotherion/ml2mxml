@@ -42,7 +42,6 @@ let eighth_rest = create_rest `Eighth
 let quarter_rest = create_rest `Quarter
 let whole_rest = create_rest `Whole
 
-let bass_zero = create_string_eighth 2 0
 let bass_seven = create_string_eighth 2 7
 let bass_seven_quarter = create_string_quarter 2 7
 let bass_eight = create_string_eighth 2 8
@@ -52,6 +51,12 @@ let bass_high_nine = create_string_eighth 3 9
 let bass_high_seven = create_string_eighth 3 7
 let bass_high_ten = create_string_eighth 3 10
 let bass_high_eleven = create_string_eighth 3 11
+let bass_high_five = create_string_eighth 3 5
+let bass_high_zero = create_string_eighth 3 0
+let bass_one = create_string_eighth 2 1
+let bass_zero = create_string_eighth 2 0
+let bass_two = create_string_eighth 2 2
+let bass_three = create_string_eighth 2 3
 let bass_low_ten = create_string_eighth 1 10
 
 let kick_q = create_drum_quarter `Kick

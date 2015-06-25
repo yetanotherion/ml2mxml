@@ -16,11 +16,11 @@ module Example = struct
                           BDG.t;
                           BDg.t_before_chorus_one_prime;
                           BDg.t_before_chorus_two;
-                          Chorus.t;
+                          Chorus.t_bis;
                           BDG.t_without_drum_in_beggining;
                           BDg.t_after_chorus_one;
                           BDg.t_after_chorus_two;
-                          Chorus.t; Bridge.t;
+                          Chorus.t_bis; Bridge.t;
                           BDG.t_without_drum_in_beggining;
                           BDg.t_after_chorus_one;
                           BDg.t_after_chorus_two; Bridge.t
