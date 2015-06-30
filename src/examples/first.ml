@@ -14,7 +14,7 @@ module Example = struct
       let open Verse in
       let song = flatten [B.t; BD.t; BDg.t_before_chorus_one;
                           BDG.t;
-                          BDg.t_before_chorus_one_prime;
+                          BDg.t_before_chorus_one;
                           BDg.t_before_chorus_two;
                           Chorus.t_bis;
                           BDG.t_without_drum_in_beggining;

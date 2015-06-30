@@ -25,10 +25,41 @@ module BDg = struct
       (create_guitar_measures first_note second_note) @ (create_guitar_measures first_note third_note)
 
     let std_guitar_line = std_guitar_line
+
     let var_guitar_line =
-      let f = create_guitar_measures (0, 0) (1, 5) in
-      let s = create_guitar_measures (1, 7) (1, 10) in
-      f @ s
+      let fn = create_string_eighth in
+      let f =
+        create_measure
+          [fn 1 1; fn 2 2;
+           fn 1 1; fn 0 0;
+           fn 1 1; fn 2 2;
+           fn 1 1; fn 0 0]
+      in
+      let s =
+        create_measure
+          [fn 1 1; fn 2 2;
+           fn 1 1; fn 2 2;
+           fn 1 1; fn 2 2;
+           fn 1 1; fn 0 0]
+      in
+      let seven =
+        create_measure
+          [fn 1 1; fn 2 2;
+           fn 2 2; fn 0 0;
+           fn 1 1; fn 2 2;
+           fn 2 2; fn 0 0]
+      in
+      let eight =
+        let last = fn 2 2 in
+        create_measure
+          [fn 1 1; last;
+           last; last;
+           last; last;
+           last; last]
+      in
+
+      [f; s; f; s; f; s; seven; eight]
+
     let other_guitar_line =
       let f = create_guitar_measures (1, 7) (1, 3) in
       let s = create_guitar_measures (0, 0) (0, 1) in
@@ -42,7 +73,7 @@ module BDg = struct
     let t_before_chorus_one = create_part a_bass_line other_guitar_before_chorus (a_drum_line ~hihat:false ())
     let t_before_chorus_two = create_part a_bass_line var_guitar_line (a_drum_line ~variation:`FstOnly ~hihat:false ~break:`Second ())
     let t_before_chorus_one_prime = create_part a_bass_line other_guitar_line (a_drum_line ~variation:`FstOnly ~hihat:false ~break:`Second ())
-    let t_after_chorus_one = create_part a_bass_line other_guitar_line (a_drum_line ~hihat:true ~variation:`All ())
+    let t_after_chorus_one = create_part a_bass_line other_guitar_before_chorus (a_drum_line ~hihat:true ~variation:`All ())
     let t_after_chorus_two = create_part a_bass_line var_guitar_line (a_drum_line ~hihat:true ~variation:`All ~break:`Second ())
   end
 

@@ -5,56 +5,45 @@ open Verse
 
 module Example = struct
     module Groove = struct
-        let create () =
-          let bass_grooves = reduce [Chorus.bass_groovy_one;
-                                     Chorus.bass_groovy_bis] in
-          let guitar_groovy_start = Chorus.create_guitar bass_grooves in
-
-          let guitar_groovy_end =
-            let first = create_string_eighth 3 5 in
-            let second = create_string_eighth 3 3 in
-            let third = create_string_eighth 1 4 in
-            let fourth = create_string_eighth 1 3 in
-            let fifth = create_string_eighth 0 4 in
-            let end_one = create_string_eighth 1 4 in
-            let end_two = create_string_eighth 2 1 in
-
-            let guitar_groove_first =
-              [first; second;
-               third; fourth;
-               fifth; fourth;
-               fifth; first]
-            in
-            let guitar_groove_two =
-              [second; third;
-               fourth; fifth;
-               fourth; fifth;
-               fourth; fifth]
-            in
-            let guitar_groove_third =
-              [first; second;
-               third; fourth;
-               fifth; fourth;
-               fifth; fourth]
-            in
-            reduce [[guitar_groove_first;
-                     guitar_groove_two;
-                     guitar_groove_third;
-                     create_measure (repeat_note 8 end_one)];
-                    [guitar_groove_first;
-                     guitar_groove_two;
-                     guitar_groove_third;
-                     create_measure (repeat_note 8 end_two)]]
+        let var_guitar_line =
+          let fn = create_string_eighth in
+          let f =
+            create_measure
+              [fn 1 1; fn 2 2;
+               fn 1 1; fn 0 0;
+               fn 1 1; fn 2 2;
+               fn 1 1; fn 0 0]
           in
-          let guitar = (reduce [guitar_groovy_start;
-                                guitar_groovy_end])
+          let s =
+            create_measure
+              [fn 1 1; fn 2 2;
+               fn 1 1; fn 2 2;
+               fn 1 1; fn 2 2;
+               fn 1 1; fn 0 0]
           in
-          let t = create_part Chorus.bass_groovy
-                              guitar
-                              Chorus.drum in
-          flatten [Verse.BDg.t_after_chorus_two;
-                   t]
+          let seven =
+            create_measure
+              [fn 1 1; fn 2 2;
+               fn 2 2; fn 0 0;
+               fn 1 1; fn 2 2;
+               fn 2 2; fn 0 0]
+          in
+          let eight =
+            let last = fn 2 2 in
+            create_measure
+              [fn 1 1; last;
+               last; last;
+               last; last;
+               last; last]
+          in
 
+          [f; s; f; s; f; s; seven; eight]
+        let t_before_chorus_two = create_part a_bass_line var_guitar_line (a_drum_line ~variation:`FstOnly ~hihat:false ~break:`Second ())
+
+        let create () = flatten [BDg.t_before_chorus_one;
+                                 t_before_chorus_two;
+                                 Chorus.t_bis]
+        let all_riffs = create ()
         let lower_tone note semi_tone_nb =
           let s, n = note in
           if n >= semi_tone_nb then s, n - semi_tone_nb
@@ -85,9 +74,7 @@ module Example = struct
           flatten riffs*)
                   (*let all_riffs = create (2, 7) (2, 5) (2, 3) (1, 1) (1, 0)*)
           (* let all_riffs = generate_all (3, 7)*)
-        let all_riffs = create ()
       end
-
     let song_to_mxml song =
       let bass = Music_xml.create_instrument 0 Music_xml.MidiInstruments.std5_bass (`String (std5_bass, song.bass)) in
       let guitar = Music_xml.create_instrument 1 Music_xml.MidiInstruments.std_guitar (`String (std_guitar, song.guitar)) in

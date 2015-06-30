@@ -121,11 +121,11 @@ let first_drum_measure ?(crash=false) ?(hihat=true) () =
   in
   create_measure (beggining @ middle @ ending)
 
-let second_drum_measure ?(variation=false) () =
+let second_drum_measure ?(hihat=false) () =
   let start = [quarter_rest;
                snare_q] in
   let ending =
-    if variation then
+    if hihat then
       [create_drum_chord `Sixteenth [`Kick;
                                      `Hihat];
        create_drum_sixteenth `Hihat;
@@ -149,13 +149,13 @@ let a_bass_line = [first_bass_measure; second_bass_measure;
 let first_drum_line ?(variation=`None) ?(hihat=true) () =
   let second =
     match variation with
-    | `All | `FstOnly -> second_drum_measure ~variation:true ()
-    | `None -> second_drum_measure ~variation:false ()
+    | `All | `FstOnly -> second_drum_measure ~hihat:true ()
+    | `None -> second_drum_measure ()
   in
   let last =
     match variation with
-    | `All -> second_drum_measure ~variation:true ()
-    | `None | `FstOnly -> second_drum_measure ~variation:false ()
+    | `All -> second_drum_measure ~hihat:true ()
+    | `None | `FstOnly -> second_drum_measure ()
   in
   [first_drum_measure ~hihat (); second; first_drum_measure ~hihat () ; last]
 
@@ -182,7 +182,7 @@ let create_drum_line_with_break ?(break=`First) ?(hihat=true) () =
                                                   `Snare];
                        eighth_rest]
   in
-  [first_drum_measure ~crash:true ~hihat () ; second_drum_measure (); first_drum_measure ~hihat (); break_measure]
+  [first_drum_measure ~crash:true ~hihat () ; second_drum_measure ~hihat (); first_drum_measure ~hihat (); break_measure]
 
 let a_drum_line ?(variation=`None) ?(break=`First) ?(hihat=true) () =
   first_drum_line ~variation ~hihat () @ (create_drum_line_with_break ~break ~hihat ())
