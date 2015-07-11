@@ -148,11 +148,16 @@ module Guitar = struct
       ]
     in
     let guitar_groove_last =
+      let chord = [(3, 7);
+                   (4, 8);
+                   (5, 10)] in
+      let eighth = create_string_chord `Eighth chord in
+      let half = create_string_chord `Half chord in
       [
         eighth_rest;
-        f 1 5; f 1 5;
+        eighth; eighth;
         eighth_rest;
-        create_string_note `Half 1 5;
+        half;
       ]
     in
     reduce [[guitar_groove_fifth;
