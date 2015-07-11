@@ -5,44 +5,60 @@ open Verse
 
 module Example = struct
     module Groove = struct
-        let var_guitar_line =
-          let fn = create_string_eighth in
-          let f =
-            create_measure
-              [fn 1 1; fn 2 2;
-               fn 1 1; fn 0 0;
-               fn 1 1; fn 2 2;
-               fn 1 1; fn 0 0]
+        let guitar_groovy_end =
+          let first = create_string_eighth 3 5 in
+          let second = create_string_eighth 3 3 in
+          let third = create_string_eighth 1 4 in
+          let fourth = create_string_eighth 1 3 in
+          let fifth = create_string_eighth 0 4 in
+          let guitar_groove_fifth =
+            [first; second;
+             third; fourth;
+             fifth; fourth;
+             fifth; Music.transpose_string_note 1 first]
           in
-          let s =
-            create_measure
-              [fn 1 1; fn 2 2;
-               fn 1 1; fn 2 2;
-               fn 1 1; fn 2 2;
-               fn 1 1; fn 0 0]
+          let guitar_groove_sixth = Music.transpose_measure 1
+            [second; third;
+             fourth; fifth;
+             fourth; fifth;
+             fourth; fifth]
           in
-          let seven =
-            create_measure
-              [fn 1 1; fn 2 2;
-               fn 2 2; fn 0 0;
-               fn 1 1; fn 2 2;
-               fn 2 2; fn 0 0]
+          let guitar_groove_seventh = Music.transpose_measure 2
+            [first; second;
+             third; fourth;
+             fifth; fourth;
+             fifth; fourth]
           in
-          let eight =
-            let last = fn 2 2 in
-            create_measure
-              [fn 1 1; last;
-               last; last;
-               last; last;
-               last; last]
+          let f = create_string_eighth in
+          let guitar_groove_eighth =
+            [
+              f 0 6; f 1 5;
+              f 2 5; f 3 5;
+              f 3 7; f 2 5;
+              f 1 5; f 0 6
+            ]
           in
+          let guitar_groove_last =
+            [
+              eighth_rest;
+              f 1 5; f 1 5;
+              eighth_rest;
+              create_string_note `Half 1 5;
+            ]
+          in
+          reduce [[guitar_groove_fifth;
+                   guitar_groove_sixth;
+                   guitar_groove_seventh;
+                   guitar_groove_eighth];
+                  [guitar_groove_fifth;
+                   guitar_groove_sixth;
+                   guitar_groove_seventh;
+                   guitar_groove_last;]]
 
-          [f; s; f; s; f; s; seven; eight]
-        let t_before_chorus_two = create_part a_bass_line var_guitar_line (a_drum_line ~variation:`FstOnly ~hihat:false ~break:`Second ())
-
-        let create () = flatten [BDg.t_before_chorus_one;
-                                 t_before_chorus_two;
-                                 Chorus.t_bis]
+        let guitar = reduce [Chorus.Guitar.guitar_groovy_start;
+                             guitar_groovy_end]
+        let t_bis = create_part Chorus.bass_groovy guitar Chorus.drum
+        let create () = flatten [                                 t_bis]
         let all_riffs = create ()
         let lower_tone note semi_tone_nb =
           let s, n = note in

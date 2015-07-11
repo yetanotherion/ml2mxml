@@ -7,7 +7,7 @@ module Example = struct
       let bass = Music_xml.create_instrument 0 Music_xml.MidiInstruments.std5_bass (`String (std5_bass, song.bass)) in
       let guitar = Music_xml.create_instrument 1 Music_xml.MidiInstruments.std_guitar (`String (std_guitar, song.guitar)) in
       let drum = Music_xml.create_instrument 3 Music_xml.MidiInstruments.std_drum (`Drum (song.drum)) in
-      let xml = Music_xml.create "try" "2015-25-04" 184 [bass; guitar; drum] in
+      let xml = Music_xml.create "try" "2015-25-04" 190 [bass; guitar; drum] in
       Music_xml.to_string xml
 
     let output_example () =
@@ -16,7 +16,7 @@ module Example = struct
                           BDG.t;
                           BDg.t_before_chorus_one;
                           BDg.t_before_chorus_two;
-                          Chorus.t_bis;
+                          Chorus.t;
                           BDG.t_without_drum_in_beggining;
                           BDg.t_after_chorus_one;
                           BDg.t_after_chorus_two;

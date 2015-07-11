@@ -228,10 +228,12 @@ let create_measure notes =
 let repeat_measures n m =
   List.map (fun _ -> m) (range 0 n)
 
+let transpose_measure semi_tone_nb measure =
+  create_measure (List.map (transpose_string_note semi_tone_nb)
+                           measure)
 
 let transpose_measures semi_tone_nb measures =
-  List.map (fun measure ->
-            create_measure (List.map (transpose_string_note semi_tone_nb) measure)) measures
+  List.map (transpose_measure semi_tone_nb) measures
 
 
 let create_string_note ?(tied=None) ?(meter=`Duple) dur s v =

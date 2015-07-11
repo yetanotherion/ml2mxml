@@ -78,48 +78,98 @@ let create_guitar bass_r =
 
 let bass_grooves = reduce [bass_groovy_one;
                            bass_groovy_bis]
+module Guitar = struct
+  let first = create_string_eighth 3 5
+  let second = create_string_eighth 3 3
+  let third = create_string_eighth 1 4
+  let fourth = create_string_eighth 1 3
+  let fifth = create_string_eighth 0 4
+  let end_one = create_string_eighth 1 4
+  let end_two = create_string_eighth 2 1
 
-let guitar_groovy_start = create_guitar bass_grooves
+  let guitar_groovy_start = create_guitar bass_grooves
 
-let guitar_groovy_end =
-  let first = create_string_eighth 3 5 in
-  let second = create_string_eighth 3 3 in
-  let third = create_string_eighth 1 4 in
-  let fourth = create_string_eighth 1 3 in
-  let fifth = create_string_eighth 0 4 in
-  let end_one = create_string_eighth 1 4 in
-  let end_two = create_string_eighth 2 1 in
 
-  let guitar_groove_first =
-    [first; second;
-     third; fourth;
-     fifth; fourth;
-     fifth; first]
-  in
-  let guitar_groove_two =
-    [second; third;
-     fourth; fifth;
-     fourth; fifth;
-     fourth; fifth]
-  in
-  let guitar_groove_third =
-    [first; second;
-     third; fourth;
-     fifth; fourth;
-     fifth; fourth]
-  in
-  reduce [[guitar_groove_first;
-           guitar_groove_two;
-           guitar_groove_third;
-           create_measure (repeat_note 8 end_one)];
-          [guitar_groove_first;
-           guitar_groove_two;
-           guitar_groove_third;
-           create_measure (repeat_note 8 end_two)]]
+  let guitar_groovy_end =
+    let guitar_groove_first =
+      [first; second;
+       third; fourth;
+       fifth; fourth;
+       fifth; first]
+    in
+    let guitar_groove_two =
+      [second; third;
+       fourth; fifth;
+       fourth; fifth;
+       fourth; fifth]
+    in
+    let guitar_groove_third =
+      [first; second;
+       third; fourth;
+       fifth; fourth;
+       fifth; fourth]
+    in
+    reduce [[guitar_groove_first;
+             guitar_groove_two;
+             guitar_groove_third;
+             create_measure (repeat_note 8 end_one)];
+            [guitar_groove_first;
+             guitar_groove_two;
+             guitar_groove_third;
+             create_measure (repeat_note 8 end_two)]]
 
-let guitar = (reduce [guitar_groovy_start;
-                      guitar_groovy_end])
+  let guitar_groovy_end_bis =
+    let guitar_groove_fifth =
+      [first; second;
+       third; fourth;
+       fifth; fourth;
+       fifth; Music.transpose_string_note 1 first]
+    in
+    let guitar_groove_sixth =
+      Music.transpose_measure 1
+                              [second; third;
+                               fourth; fifth;
+                               fourth; fifth;
+                               fourth; fifth]
+    in
+    let guitar_groove_seventh = Music.transpose_measure 2
+                                                        [first; second;
+                                                         third; fourth;
+                                                         fifth; fourth;
+                                                         fifth; fourth]
+    in
+    let f = create_string_eighth in
+    let guitar_groove_eighth =
+      [
+        f 0 6; f 1 5;
+        f 2 5; f 3 5;
+        f 3 7; f 2 5;
+        f 1 5; f 0 6
+      ]
+    in
+    let guitar_groove_last =
+      [
+        eighth_rest;
+        f 1 5; f 1 5;
+        eighth_rest;
+        create_string_note `Half 1 5;
+      ]
+    in
+    reduce [[guitar_groove_fifth;
+             guitar_groove_sixth;
+             guitar_groove_seventh;
+             guitar_groove_eighth];
+            [guitar_groove_fifth;
+             guitar_groove_sixth;
+             guitar_groove_seventh;
+             guitar_groove_last;]]
 
+  let guitar = (reduce [guitar_groovy_start;
+                        guitar_groovy_end])
+
+  let guitar_bis = (reduce [guitar_groovy_start;
+                            guitar_groovy_end_bis])
+end
 
 let create_std_drum_measure last_measure =
   [drum_groovy_first_measure;
@@ -134,6 +184,10 @@ let drum = reduce [drum_measure_1;
                    drum_measure_1;
                    drum_measure_2]
 
+let t = create_part bass_groovy
+                    Guitar.guitar
+                    drum
+
 let t_bis = create_part bass_groovy
-                        guitar
+                        Guitar.guitar_bis
                         drum
