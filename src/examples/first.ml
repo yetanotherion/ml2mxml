@@ -21,9 +21,9 @@ module Example = struct
                           BDg.t_after_chorus_one;
                           BDg.t_after_chorus_two;
                           Chorus.t_bis; Bridge.t;
-                          BDG.t_without_drum_in_beggining;
                           BDg.t_after_chorus_one;
-                          BDg.t_after_chorus_two; Bridge.t
+                          BDg.t_after_chorus_two; Chorus.t_bis;
+                          Bridge.t
                          ] in
       song_to_mxml song
 
