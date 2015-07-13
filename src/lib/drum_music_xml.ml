@@ -1,9 +1,8 @@
 let drum_element_to_mxml_param x =
   (* this is from guitar pro 6 music xml
-     that is buggy, as the same notation is given
-     for splash and crash_01 for example (the produced
-     sound is however different, their code might mix
-     notation and midi elements)
+     that seems buggy, as the same notation is given
+     to splash and crash_01 for example (the produced
+     sound is however different)
    *)
   match x with
     | `Tom_01 -> "A", 4, "normal"
