@@ -11,7 +11,7 @@ module Example = struct
     let song_to_mxml song =
       let bass = Music_xml.create_instrument 0 Music_xml.MidiInstruments.std5_bass (`String (std5_bass, song.bass)) in
       let guitar = Music_xml.create_instrument 1 Music_xml.MidiInstruments.std_guitar (`String (std_guitar, song.guitar)) in
-      let drum = Music_xml.create_instrument 3 Music_xml.MidiInstruments.std_drum (`Drum (song.drum)) in
+      let drum = Music_xml.create_instrument 2 Music_xml.MidiInstruments.std_drum (`Drum (song.drum)) in
       let xml = Music_xml.create "try" "2015-25-04" 184 [bass; guitar; drum] in
       Music_xml.to_string xml
 
