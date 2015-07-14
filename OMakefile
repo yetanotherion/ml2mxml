@@ -5,9 +5,13 @@ BYTE_ENABLED = true
 
 USE_OCAMLFIND = true
 
+# the dependencies are not found in my
+# station without this option
+OCAMLDEP_MODULES_ENABLED = false
+
 if $(not $(OCAMLFIND_EXISTS))
    eprintln(This project requires ocamlfind, but is was not found.)
    eprintln(You need to install ocamlfind and run "omake --configure".)
    exit 1
 
-.SUBDIRS: src
+.SUBDIRS: lib tests examples

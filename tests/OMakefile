@@ -1,0 +1,19 @@
+.SUBDIRS:
+
+OCAMLPACKS[] =
+    ounit
+
+OCAMLINCLUDES = ../lib
+
+OCAML_LIBS[] +=
+    ../lib/ml2mxml
+
+FILES[] =
+    test_music
+
+.PHONY: clean
+
+clean:
+    CLEAN = rm -rf *.cm* *~ .\#* *.o *.lib *.omc *.install *.tmp test_music test_music.run oUnit-*
+
+.DEFAULT: $(OCamlProgram test_music, $(FILES))

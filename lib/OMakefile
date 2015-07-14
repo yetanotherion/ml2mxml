@@ -2,6 +2,7 @@
 
 OCAMLPACKS += camlp4
 OCAMLFINDFLAGS += -syntax camlp4o
+OCAML_LINK_FLAGS += -pack music_xml,music
 
 OCAMLPACKS[] =
     cow
@@ -12,10 +13,9 @@ FILES[] =
     drum_music_xml
     music
 
-CLEAN = rm -rf *.cm* *~ .\#* *.o *.lib *.omc *.install *.tmp
+.PHONY: clean
 
 clean:
-    $(CLEAN)
+    rm -rf *.cm* *~ .\#* *.o *.lib *.omc *.install *.tmp
 
-OCAML_LINK_FLAGS += -pack music_xml,music
-.DEFAULT: $(OCamlLibrary riff, $(FILES))
+.DEFAULT: $(OCamlLibrary ml2mxml, $(FILES))
