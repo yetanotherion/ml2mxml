@@ -14,8 +14,6 @@ FILES[] =
 OCAMLPACKS[] =
     cow
 
-.PHONY: clean
-
 clean:
     rm -rf *.cm* *~ .\#* *.o *.lib *.omc *.install *.tmp first first.run first_all first_all.run
 

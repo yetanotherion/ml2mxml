@@ -1,4 +1,6 @@
-.PHONY: clean
+.PHONY: clean install uninstall test
+
+VERSION = 0.1
 
 NATIVE_ENABLED = false
 BYTE_ENABLED = true

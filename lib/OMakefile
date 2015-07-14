@@ -13,9 +13,16 @@ FILES[] =
     drum_music_xml
     music
 
-.PHONY: clean
-
 clean:
     rm -rf *.cm* *~ .\#* *.o *.lib *.omc *.install *.tmp
 
-.DEFAULT: $(OCamlLibrary ml2mxml, $(FILES))
+META: META.in
+    sed -e 's:@@VERSION@@:$(VERSION):' META.in > META
+
+.DEFAULT: $(OCamlLibrary ml2mxml, $(FILES)) META
+
+install: .DEFAULT
+    $(OCAMLFIND) install ml2mxml META ml2mxml.cma $(addsuffix .cmo, $(FILES)) $(addsuffix .cmi, $(FILES))
+
+uninstall:
+    $(OCAMLFIND) remove ml2mxml

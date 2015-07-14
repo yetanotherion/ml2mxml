@@ -1,0 +1,11 @@
+name = "ml2mxml"
+version = "@@VERSION@@"
+description = "Generating musicxml files from partitions written in OCaml"
+requires = "cow"
+archive(byte) = "ml2mxml.cma"
+package "ml2mxml" (
+ version = "@@VERSION@@"
+ description = "OCaml => MusicXml conversion"
+ requires = "cow"
+ archive(byte) = "ml2mxml.cma"
+)

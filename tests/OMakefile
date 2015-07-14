@@ -11,9 +11,10 @@ OCAML_LIBS[] +=
 FILES[] =
     test_music
 
-.PHONY: clean
-
 clean:
-    CLEAN = rm -rf *.cm* *~ .\#* *.o *.lib *.omc *.install *.tmp test_music test_music.run oUnit-*
+    rm -rf *.cm* *~ .\#* *.o *.lib *.omc *.install *.tmp test_music test_music.run oUnit-*
 
 .DEFAULT: $(OCamlProgram test_music, $(FILES))
+
+test: .DEFAULT
+    ./test_music.run
