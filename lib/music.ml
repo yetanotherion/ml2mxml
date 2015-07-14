@@ -121,59 +121,67 @@ type 'a measure_elt = {
   duration: note_duration;
   tied: tied option;
   meter: meter;
+  dot: bool;
 }
 
 type 'a measure = 'a measure_elt list
 type 'a measures = 'a measure list
 
 let duration_to_float n =
-  match n.duration with
-  | `Sixteenth -> begin
-      match n.meter with
-      | `Duple -> 1.0 /. 16.0
-      | `Triple -> 1.0 /. 24.0
-    end
-  | `Eighth -> begin
-     match n.meter with
-     | `Duple -> 1.0 /. 8.0
-     | `Triple -> 1.0 /. 12.0
-    end
-  | `Quarter -> begin
-      match n.meter with
-      | `Duple -> 1.0 /. 4.0
-      | `Triple -> failwith ("not supported for now")
-    end
-  | `Half -> begin
-      match n.meter with
-      | `Duple -> 1.0 /. 2.0
-      | `Triple -> failwith ("not supported for now")
-    end
-  | `Whole -> begin
-      match n.meter with
-      | `Duple -> 1.0
-      | `Triple -> failwith ("not supported for now")
-    end
+  let res =
+    match n.duration with
+    | `Sixteenth -> begin
+        match n.meter with
+        | `Duple -> 1.0 /. 16.0
+        | `Triple -> 1.0 /. 24.0
+      end
+    | `Eighth -> begin
+        match n.meter with
+        | `Duple -> 1.0 /. 8.0
+        | `Triple -> 1.0 /. 12.0
+      end
+    | `Quarter -> begin
+        match n.meter with
+        | `Duple -> 1.0 /. 4.0
+        | `Triple -> failwith ("not supported for now")
+      end
+    | `Half -> begin
+        match n.meter with
+        | `Duple -> 1.0 /. 2.0
+        | `Triple -> failwith ("not supported for now")
+      end
+    | `Whole -> begin
+        match n.meter with
+        | `Duple -> 1.0
+        | `Triple -> failwith ("not supported for now")
+      end
+  in
+  if n.dot then res +. (res /. 2.0)
+  else res
 
-let create_single_note ?(tied=None) ?(meter=`Duple) dur n =
+let create_single_note ?(tied=None) ?(meter=`Duple) ?(dot=false) dur n =
   {
     note=`Single n;
     duration=dur;
     meter=meter;
     tied=tied;
+    dot=dot;
   }
 
-let create_chord ?(tied=None) ?(meter=`Duple) dur played_notes =
+let create_chord ?(tied=None) ?(meter=`Duple) ?(dot=false) dur played_notes =
   {note=`Chord played_notes;
    duration=dur;
    meter=meter;
    tied=tied;
+   dot=dot;
   }
 
-let create_rest ?(meter=`Duple) dur =
+let create_rest ?(meter=`Duple) ?(dot=false) dur =
   {note=`Rest;
    duration=dur;
    meter=meter;
    tied=None;
+   dot=dot;
   }
 
 let rec find_note_in_guitar n =
@@ -206,7 +214,9 @@ let transpose_string_note semi_tone n =
   {note=new_note;
    duration=n.duration;
    tied=n.tied;
-   meter=n.meter}
+   meter=n.meter;
+   dot=n.dot;
+  }
 
 let lower_string_note_by_fifth n = transpose_string_note (-5) n
 
@@ -236,29 +246,30 @@ let transpose_measures semi_tone_nb measures =
   List.map (transpose_measure semi_tone_nb) measures
 
 
-let create_string_note ?(tied=None) ?(meter=`Duple) dur s v =
-  create_single_note ~tied ~meter dur ({string=s;
+let create_string_note ?(tied=None) ?(meter=`Duple) ?(dot=false) dur s v =
+  create_single_note ~tied ~meter ~dot dur ({string=s;
                                   fret=v})
-let create_string_chord ?(tied=None) ?(meter=`Duple) dur l =
-  create_chord ~tied ~meter dur (List.map (fun x ->
+let create_string_chord ?(tied=None) ?(meter=`Duple) ?(dot=false) dur l =
+  create_chord ~tied ~meter ~dot dur (List.map (fun x ->
                                            let s, v = x in
                                            {string=s;
                                             fret=v}) l)
 
-let create_drum_note ?(tied=None) ?(meter=`Duple) dur h =
-  create_single_note ~tied ~meter dur h
+let create_drum_note ?(tied=None) ?(meter=`Duple) ?(dot=false) dur h =
+  create_single_note ~tied ~meter ~dot dur h
 
-let create_drum_chord ?(tied=None) ?(meter=`Duple) dur l =
-  create_chord ~tied ~meter dur l
+let create_drum_chord ?(tied=None) ?(meter=`Duple) ?(dot=false) dur l =
+  create_chord ~tied ~meter ~dot dur l
 
-let create_string_eighth ?(tied=None) ?(meter=`Duple) = create_string_note ~tied ~meter `Eighth
-let create_string_chord_eighth ?(tied=None) ?(meter=`Duple) = create_string_chord ~tied ~meter `Eighth
-let create_string_quarter ?(tied=None) ?(meter=`Duple) = create_string_note ~tied ~meter `Quarter
-let create_drum_sixteenth ?(tied=None) ?(meter=`Duple) = create_drum_note ~tied ~meter `Sixteenth
-let create_drum_eighth ?(tied=None) ?(meter=`Duple) = create_drum_note ~tied ~meter `Eighth
-let create_drum_quarter ?(tied=None) ?(meter=`Duple) = create_drum_note ~tied ~meter `Quarter
-let create_drum_half ?(tied=None) ?(meter=`Duple) = create_drum_note ~tied ~meter `Half
-let create_drum_chord_quarter ?(tied=None) ?(meter=`Duple) = create_drum_chord ~tied ~meter `Quarter
+let create_string_eighth ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_string_note ~tied ~meter ~dot `Eighth
+let create_string_chord_eighth ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_string_chord ~tied ~meter ~dot `Eighth
+let create_string_quarter ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_string_note ~tied ~meter ~dot `Quarter
+let create_string_half ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_string_note ~tied ~meter ~dot `Half
+let create_drum_sixteenth ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_drum_note ~tied ~meter ~dot `Sixteenth
+let create_drum_eighth ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_drum_note ~tied ~meter ~dot `Eighth
+let create_drum_quarter ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_drum_note ~tied ~meter ~dot `Quarter
+let create_drum_half ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_drum_note ~tied ~meter ~dot `Half
+let create_drum_chord_quarter ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_drum_chord ~tied ~meter ~dot `Quarter
 
 let make_standard_bass_shift note =
   Diatonic.shift_n_semitone note 5

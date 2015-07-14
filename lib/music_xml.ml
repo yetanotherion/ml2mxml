@@ -295,6 +295,13 @@ let create_chord_elt_if_necessary is_chord_necessary =
   if is_chord_necessary then [Constants.chord]
   else []
 
+let create_dot_if_necessary dot =
+  if dot then
+    let elm = <:xml<
+               <dot/>
+               >> in [elm]
+  else []
+
 let create_mxml_note chord
                      pitch_or_rest
                      instrument_lines
@@ -309,6 +316,7 @@ let create_mxml_note chord
     <duration>$int:duration_to_duration note.duration$</duration>
     $list:instrument_lines$
     $list:tie_to_xml note.tied$
+    $list:create_dot_if_necessary note.dot$
     <voice>1</voice>
     <type>$str:duration_to_string note.duration$</type>
     $list:meter$
@@ -353,6 +361,7 @@ let transform_note note newnote =
     duration=note.duration;
     meter=note.meter;
     tied=note.tied;
+    dot=note.dot;
   }
 
 let create_measure ?(tempo=None)
