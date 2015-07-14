@@ -1,0 +1,19 @@
+opam-version: "1.2"
+name: "ml2mxml"
+version: "0.1"
+maintainer: "Ion Alberdi <nolaridebi@gmail.com>"
+authors: "Ion Alberdi <nolaridebi@gmail.com>"
+homepage: "https://github.com/yetanotherion/ml2mxml"
+dev-repo: "https://github.com/yetanotherion/ml2mxml.git"
+bug-reports: "https://github.com/yetanotherion/ml2mxml/issues"
+license: "Apache Version 2.0"
+build: ["omake"]
+install: ["omake" "install"]
+remove: ["ocamlfind" "remove" "ml2mxml"]
+build-test: ["omake" "test"]
+depends: [
+  "ocamlfind" {build}
+  "cow" {>= "1.2.1"}
+  "ounit" {test}
+  "omake" {>= "0.9.8"}
+]
