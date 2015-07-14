@@ -1,4 +1,4 @@
-.PHONY: clean install uninstall test
+.PHONY: clean install uninstall test ex
 
 VERSION = 0.1
 

@@ -6,15 +6,15 @@ OCAML_LIBS[] +=
     ../lib/ml2mxml
 
 FILES[] =
-    utils
-    verse
-    bridge
-    chorus
+    hello_ode_to_joy
 
 OCAMLPACKS[] =
     cow
 
 clean:
-    rm -rf *.cm* *~ .\#* *.o *.lib *.omc *.install *.tmp first first.run first_all first_all.run
+    rm -rf *.xml *.cm* *~ .\#* *.o *.lib *.omc *.install *.tmp hello_ode_to_joy hello_ode_to_joy.run
 
-.DEFAULT: $(OCamlProgram first, first $(FILES)) $(OCamlProgram first_all, first_all $(FILES))
+.DEFAULT: $(OCamlProgram hello_ode_to_joy, $(FILES))
+
+ex: .DEFAULT
+     ./hello_ode_to_joy.run
