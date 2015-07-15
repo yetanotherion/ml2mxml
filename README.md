@@ -5,9 +5,10 @@ ml2mxml is an OCaml library to generate
 musicxml (http://www.musicxml.com/) files.
 
 That library has been developed for two reasons:
-- the lack of what 'git' offers, in music partition editors,
-- the personal lack of skills to use cut/copy/paste features of Guitar Pro 6,
-  needed to copy/move partitions around measure/instruments.
+- the lack of what 'git' offers, in music score editors,
+- the hard time experienced when using the cut/copy/paste features
+  of the Guitar Pro 6 music score editor.
+
 
 With that library, music can be written as:
 - write an OCaml program (see examples/hello_ode_of_joy.ml),
@@ -34,7 +35,7 @@ Instructions
 % omake test
 ```
 
-* To generate the xmls of the examples:
+* To generate the xml of the example:
 
 ```shell
 % omake ex
