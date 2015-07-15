@@ -25,18 +25,39 @@ don't hesitate at creating issues (https://github.com/yetanotherion/ml2mxml/issu
 
 Instructions
 ============
-* To build the library:
+The library can be installed with opam (http://opam.ocaml.org/):
+
+```shell
+% opam install ml2mxml
+```
+
+To build from source, the following dependencies
+are needed
+
+```shell
+% opam install ocamlfind cow omake ounit
+```
+
+Then, the following omake targets are available:
+
+* build the library:
 ```shell
 % omake
 ```
 
-* To execute the tests:
+* execute the tests:
 ```shell
 % omake test
 ```
 
-* To generate the xml of the example:
+* generate the xml of the example:
 
 ```shell
 % omake ex
+```
+
+* install (uninstall):
+
+```shell
+% omake install (uninstall)
 ```
