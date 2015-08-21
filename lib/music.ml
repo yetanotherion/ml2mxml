@@ -65,6 +65,9 @@ module Diatonic = struct
     octave: int;
   }
 
+  let create n octave = { note=n;
+                          octave=octave}
+
   let note_idx n =
     let r, idx = List.fold_left (fun accum elt ->
       let found, res = accum in
@@ -126,6 +129,11 @@ type string_note = [
 type drum_note = [
   | `Single of drum_element
   | `Chord of drum_element list
+  | `Rest ]
+
+type diatonic_note = [
+  | `Single of Diatonic.t
+  | `Chord of Diatonic.t list
   | `Rest ]
 
 type meter = [`Duple | `Triple ]
@@ -262,13 +270,21 @@ let transpose_measures semi_tone_nb measures =
 
 
 let create_string_note ?(tied=None) ?(meter=`Duple) ?(dot=false) dur s v =
-  create_single_note ~tied ~meter ~dot dur ({string=s;
-                                  fret=v})
+  create_single_note ~tied ~meter ~dot dur ({string=s; fret=v})
+
 let create_string_chord ?(tied=None) ?(meter=`Duple) ?(dot=false) dur l =
   create_chord ~tied ~meter ~dot dur (List.map (fun x ->
                                            let s, v = x in
                                            {string=s;
                                             fret=v}) l)
+
+let create_diatonic_note ?(tied=None) ?(meter=`Duple) ?(dot=false) dur note octave =
+  create_single_note ~tied ~meter ~dot dur (Diatonic.create note octave)
+
+let create_diatonic_chord ?(tied=None) ?(meter=`Duple) ?(dot=false) dur l =
+  create_chord ~tied ~meter ~dot dur (List.map (fun x ->
+                                                let note, octave = x in
+                                                Diatonic.create note octave) l)
 
 let create_drum_note ?(tied=None) ?(meter=`Duple) ?(dot=false) dur h =
   create_single_note ~tied ~meter ~dot dur h
@@ -281,6 +297,13 @@ let create_string_eighth ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_stri
 let create_string_chord_eighth ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_string_chord ~tied ~meter ~dot `Eighth
 let create_string_quarter ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_string_note ~tied ~meter ~dot `Quarter
 let create_string_half ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_string_note ~tied ~meter ~dot `Half
+
+let create_diatonic_sixteenth ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_diatonic_note ~tied ~meter ~dot `Sixteenth
+let create_diatonic_eighth ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_diatonic_note ~tied ~meter ~dot `Eighth
+let create_diatonic_chord_eighth ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_diatonic_chord ~tied ~meter ~dot `Eighth
+let create_diatonic_quarter ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_diatonic_note ~tied ~meter ~dot `Quarter
+let create_diatonic_half ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_diatonic_note ~tied ~meter ~dot `Half
+
 let create_drum_sixteenth ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_drum_note ~tied ~meter ~dot `Sixteenth
 let create_drum_eighth ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_drum_note ~tied ~meter ~dot `Eighth
 let create_drum_quarter ?(tied=None) ?(meter=`Duple) ?(dot=false) = create_drum_note ~tied ~meter ~dot `Quarter
