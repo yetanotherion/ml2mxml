@@ -220,18 +220,13 @@ let tie_to_xml =
                 <tie $alist:["type", a]$/>
                 >>)
 
-let create_pitch instrument played_note tied =
-  let open Music in
-  let string = played_note.string in
-  let string_empty_note = instrument.strings.(string) in
-  let diatonic = Diatonic.shift_n_semitone string_empty_note played_note.fret in
-  let step, altero = DiatonicScaleStepToTuningStep.note_to_string_alter diatonic.Diatonic.note in
+let create_pitch step octave sharp_or_flat =
   let r = <:xml<
-    <step>$str:step$</step>
+     <step>$str:step$</step>
     >>
   in
   let r = [r] in
-  let r = match altero with
+  let r = match sharp_or_flat with
     | None -> r
     | Some alter ->
       let s = DiatonicScaleStepToTuningStep.sharp_flat_to_int alter in
@@ -240,28 +235,53 @@ let create_pitch instrument played_note tied =
         >> in
       List.rev (elt :: r)
   in
-  let pitch = <:xml<
+  <:xml<
   <pitch>
     $list:r$
-    <octave>$int:diatonic.Diatonic.octave$</octave>
+    <octave>$int:octave$</octave>
   </pitch>
-    >> in
+    >>
+
+let create_notations tied sfo =
+  let tied = tied_to_xml tied in
+  let technical = match sfo with
+    | None -> []
+    | Some (s, f) ->
+       let elt =
+         <:xml<
+          <technical>
+           <string>$int:s$</string>
+           <fret>$int:f$</fret>
+          </technical>
+          >> in
+       [elt]
+  in
+  <:xml<
+   <notations>
+   $list:technical$
+   $list:tied$
+   </notations>
+  >>
+
+
+let create_pitch_and_notations step octave sharp_or_flat tied sfo =
+  let pitch = create_pitch step octave sharp_or_flat in
+  let notations = create_notations tied sfo in
+  pitch, [notations]
+
+let create_string_pitch_and_notations instrument played_note tied =
+  let open Music in
+  let string = played_note.string in
+  let string_empty_note = instrument.strings.(string) in
+  let diatonic = Diatonic.shift_n_semitone string_empty_note played_note.fret in
+  let step, sharp_or_flat = DiatonicScaleStepToTuningStep.note_to_string_alter diatonic.Diatonic.note in
   (* XXX when guitar pro opens a music_xml it seems
      the string numbers are upside down *)
   let number_strings = Array.length instrument.strings in
   let curr_string = number_strings - played_note.string in
-  let tied = tied_to_xml tied in
-  let notations = <:xml<
-   <notations>
-    <technical>
-     <string>$int:curr_string$</string>
-     <fret>$int:played_note.fret$</fret>
-    </technical>
-    $list:tied$
-   </notations>
-    >>
-  in
-  pitch, [notations]
+  create_pitch_and_notations step diatonic.Diatonic.octave sharp_or_flat tied (Some (curr_string,
+                                                                                     played_note.fret))
+
 
 let duration_to_string dur =
   match dur with
@@ -365,7 +385,17 @@ let create_string_note ?(chord=false) instrument note =
   let open Music in
   let pitch_or_rest, notations = match note.note with
     | `Rest -> Constants.rest, []
-    | `Played x -> create_pitch instrument x note.tied
+    | `Played x -> create_string_pitch_and_notations instrument x note.tied
+  in
+  create_mxml_note chord pitch_or_rest [] notations note
+
+let create_voice_note ?(chord=false) id note =
+  let open Music in
+  let pitch_or_rest, notations = match note.note with
+    | `Rest -> Constants.rest, []
+    | `Played x ->
+       let step, sharp_or_flat = DiatonicScaleStepToTuningStep.note_to_string_alter x.Diatonic.note in
+       create_pitch_and_notations step x.Diatonic.octave sharp_or_flat note.tied None
   in
   create_mxml_note chord pitch_or_rest [] notations note
 
@@ -452,9 +482,18 @@ let create_drum_measure ?(tempo=None) measure_number notes id =
                  (drum_clef)
                  []
 
+let create_voice_measure ?(tempo=None) measure_number notes id =
+  create_measure ~tempo
+                 measure_number notes
+                 (create_voice_note id)
+                 (create_voice_note ~chord:true id)
+                 (create_clef `G 2)
+                 [create_key 0 `Major]
+
 type music_instrument = [
   | `String of (Music.string_instrument * Music.string_note Music.measures)
-  | `Drum of Music.drum_note Music.measures]
+  | `Drum of Music.drum_note Music.measures
+  | `Voice of Music.diatonic_note Music.measures ]
 
 type instrument = {
     instrument_id: int;
@@ -520,6 +559,17 @@ module MidiInstruments = struct
     let std_guitar id =
       create_midi_instrument id "Guitar" "E-Guitar" guitar_midi_instrument
 
+    let voice_midi_instrument = {
+        channel = 5;
+        bank = 1;
+        program = 54;
+        volume = 80;
+        pan = 0;
+      }
+
+    let std_voice id =
+      create_midi_instrument id "Alto Voice" "Singer" voice_midi_instrument
+
     let std_drum = Drum_music_xml.create_midi_instrument
 
   end
@@ -541,6 +591,9 @@ let create title date tempo instruments =
     | `Drum measures -> List.map (fun (i, measure_notes) ->
                                   create_drum_measure i measure_notes x.instrument_id)
                                  (Music.enumerate measures)
+    | `Voice measures -> List.map (fun (i, measure_notes) ->
+                                   create_voice_measure i measure_notes x.instrument_id)
+                                  (Music.enumerate measures)
   in
 
   let make_part x =
